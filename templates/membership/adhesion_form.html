@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Formulaire d'adhésion{% endblock %}
+{% block content %}
+<header class="page-header page-header-compact">
+  <div class="page-header-text">
+    <span class="page-kicker">E.C.C.O. · Adhésion</span>
+    <h1 class="page-title">Demande d'adhésion</h1>
+    <p class="page-subtitle">Ensemble, Changeons le Congo. Les champs * sont obligatoires.</p>
+  </div>
+</header>
+
+<form method="post" enctype="multipart/form-data" novalidate class="form-compact" id="adhesion-form">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-section">
+    <h5><span class="step">1</span> Identité</h5>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label class="form-label">Nom *</label>{{ form.nom }}
+        {% if form.nom.errors %}<div class="field-error">{{ form.nom.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4"><label class="form-label">Post-nom *</label>{{ form.post_nom }}</div>
+      <div class="col-md-4"><label class="form-label">Prénom *</label>{{ form.prenom }}</div>
+      <div class="col-md-4"><label class="form-label">Date de naissance *</label>{{ form.date_naissance }}</div>
+      <div class="col-md-4"><label class="form-label">Lieu de naissance *</label>{{ form.lieu_naissance }}</div>
+      <div class="col-md-2"><label class="form-label">Sexe *</label>{{ form.sexe }}</div>
+      <div class="col-md-2"><label class="form-label">État civil *</label>{{ form.etat_civil }}</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">2</span> Coordonnées &amp; origine</h5>
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label">Adresse *</label>{{ form.adresse }}</div>
+      <div class="col-md-3">
+        <label class="form-label">Téléphone *</label>{{ form.telephone }}
+        {% if form.telephone.errors %}<div class="field-error">{{ form.telephone.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-3"><label class="form-label">Email</label>{{ form.email }}</div>
+      <div class="col-md-4"><label class="form-label">Nationalité</label>{{ form.nationalite }}</div>
+      <div class="col-md-4"><label class="form-label">Province d'origine *</label>{{ form.province_origine }}</div>
+      <div class="col-md-4"><label class="form-label">Section locale *</label>{{ form.section_locale }}</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">3</span> Pièce d'identité &amp; profil</h5>
+    <div class="row g-2">
+      <div class="col-md-4"><label class="form-label">Type de pièce *</label>{{ form.type_piece_identite }}</div>
+      <div class="col-md-4"><label class="form-label">N° pièce *</label>{{ form.numero_piece_identite }}</div>
+      <div class="col-md-4"><label class="form-label">Niveau d'études</label>{{ form.niveau_etudes }}</div>
+      <div class="col-md-6"><label class="form-label">Profession</label>{{ form.profession }}</div>
+      <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check mb-1">
+          {{ form.deja_membre }}
+          <label class="form-check-label" for="{{ form.deja_membre.id_for_label }}">Déjà membre auparavant</label>
+        </div>
+      </div>
+      <div class="col-12" id="details-membre-wrap" hidden>
+        <label class="form-label">Détails si déjà membre</label>{{ form.details_membre }}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">4</span> Motivations &amp; photos</h5>
+    <div class="mb-2"><label class="form-label">Motivations *</label>{{ form.motivations }}</div>
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label">Photo d'identité</label>{{ form.photo1 }}</div>
+      <div class="col-md-6"><label class="form-label">Photo supplémentaire</label>{{ form.photo2 }}</div>
+      <div class="col-md-4"><label class="form-label">Date de signature *</label>{{ form.date_signature }}</div>
+    </div>
+    <div class="form-check mt-2">
+      {{ form.certifie_exactitude }}
+      <label class="form-check-label" for="{{ form.certifie_exactitude.id_for_label }}">Je certifie l'exactitude des informations fournies *</label>
+      {% if form.certifie_exactitude.errors %}<div class="field-error">{{ form.certifie_exactitude.errors }}</div>{% endif %}
+    </div>
+    {{ form.latitude }}{{ form.longitude }}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">Soumettre ma demande</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const deja = document.getElementById("id_deja_membre");
+  const wrap = document.getElementById("details-membre-wrap");
+  if (deja && wrap) {
+    const sync = () => { wrap.hidden = !deja.checked; };
+    deja.addEventListener("change", sync);
+    sync();
+  }
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      const lat = document.getElementById("id_latitude");
+      const lng = document.getElementById("id_longitude");
+      if (lat) lat.value = pos.coords.latitude.toFixed(6);
+      if (lng) lng.value = pos.coords.longitude.toFixed(6);
+    });
+  }
+})();
+</script>
+{% endblock %}

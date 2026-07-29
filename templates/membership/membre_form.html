@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Modifier {{ membre.nom_complet }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-ep">
+  <a href="{% url 'membership:membre_list' %}">Membres</a>
+  <span class="sep">/</span>
+  <a href="{% url 'membership:membre_detail' membre.pk %}">{{ membre.nom_complet }}</a>
+  <span class="sep">/</span>
+  <span>Modifier</span>
+</nav>
+
+<header class="page-header page-header-compact">
+  <div class="page-header-text">
+    <span class="page-kicker">Fiche membre</span>
+    <h1 class="page-title">Modifier {{ membre.nom_complet }}</h1>
+    <p class="page-subtitle">
+      <span class="meta-pill">{{ membre.numero_membre }}</span>
+      — Les champs * sont obligatoires.
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'membership:membre_detail' membre.pk %}">Annuler</a>
+  </div>
+</header>
+
+<form method="post" enctype="multipart/form-data" novalidate class="form-compact" id="membre-edit-form">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-section">
+    <h5><span class="step">1</span> Identité</h5>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label class="form-label">Nom *</label>{{ form.nom }}
+        {% if form.nom.errors %}<div class="field-error">{{ form.nom.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Post-nom *</label>{{ form.post_nom }}
+        {% if form.post_nom.errors %}<div class="field-error">{{ form.post_nom.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Prénom *</label>{{ form.prenom }}
+        {% if form.prenom.errors %}<div class="field-error">{{ form.prenom.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Date de naissance *</label>{{ form.date_naissance }}
+        {% if form.date_naissance.errors %}<div class="field-error">{{ form.date_naissance.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Lieu de naissance *</label>{{ form.lieu_naissance }}
+        {% if form.lieu_naissance.errors %}<div class="field-error">{{ form.lieu_naissance.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Sexe *</label>{{ form.sexe }}
+        {% if form.sexe.errors %}<div class="field-error">{{ form.sexe.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">État civil *</label>{{ form.etat_civil }}
+        {% if form.etat_civil.errors %}<div class="field-error">{{ form.etat_civil.errors }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">2</span> Coordonnées &amp; origine</h5>
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="form-label">Adresse *</label>{{ form.adresse }}
+        {% if form.adresse.errors %}<div class="field-error">{{ form.adresse.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Téléphone *</label>{{ form.telephone }}
+        {% if form.telephone.errors %}<div class="field-error">{{ form.telephone.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Email</label>{{ form.email }}
+        {% if form.email.errors %}<div class="field-error">{{ form.email.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Nationalité</label>{{ form.nationalite }}
+        {% if form.nationalite.errors %}<div class="field-error">{{ form.nationalite.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Province d'origine *</label>{{ form.province_origine }}
+        {% if form.province_origine.errors %}<div class="field-error">{{ form.province_origine.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Section locale *</label>{{ form.section_locale }}
+        {% if form.section_locale.errors %}<div class="field-error">{{ form.section_locale.errors }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">3</span> Pièce d'identité &amp; profil</h5>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label class="form-label">Type de pièce *</label>{{ form.type_piece_identite }}
+        {% if form.type_piece_identite.errors %}<div class="field-error">{{ form.type_piece_identite.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">N° pièce *</label>{{ form.numero_piece_identite }}
+        {% if form.numero_piece_identite.errors %}<div class="field-error">{{ form.numero_piece_identite.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Niveau d'études</label>{{ form.niveau_etudes }}
+        {% if form.niveau_etudes.errors %}<div class="field-error">{{ form.niveau_etudes.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Profession</label>{{ form.profession }}
+        {% if form.profession.errors %}<div class="field-error">{{ form.profession.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check mb-1">
+          {{ form.deja_membre }}
+          <label class="form-check-label" for="{{ form.deja_membre.id_for_label }}">Déjà membre auparavant</label>
+        </div>
+      </div>
+      <div class="col-12" id="details-membre-wrap" {% if not form.deja_membre.value %}hidden{% endif %}>
+        <label class="form-label">Détails si déjà membre</label>{{ form.details_membre }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Motivations *</label>{{ form.motivations }}
+        {% if form.motivations.errors %}<div class="field-error">{{ form.motivations.errors }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">4</span> Photos &amp; statut</h5>
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="form-label">Photo d'identité</label>{{ form.photo1 }}
+        {% if form.photo1.errors %}<div class="field-error">{{ form.photo1.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Photo supplémentaire</label>{{ form.photo2 }}
+        {% if form.photo2.errors %}<div class="field-error">{{ form.photo2.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check mb-1">
+          {{ form.actif }}
+          <label class="form-check-label" for="{{ form.actif.id_for_label }}">Membre actif</label>
+        </div>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Notes internes</label>{{ form.notes }}
+        {% if form.notes.errors %}<div class="field-error">{{ form.notes.errors }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">Enregistrer</button>
+      <a class="btn btn-outline-secondary" href="{% url 'membership:membre_detail' membre.pk %}">Annuler</a>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const deja = document.getElementById("id_deja_membre");
+  const wrap = document.getElementById("details-membre-wrap");
+  if (deja && wrap) {
+    const sync = () => { wrap.hidden = !deja.checked; };
+    deja.addEventListener("change", sync);
+    sync();
+  }
+})();
+</script>
+{% endblock %}

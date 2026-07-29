@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Adhésions{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Membership</span>
+    <h1 class="page-title">Adhésions</h1>
+    <p class="page-subtitle">Suivi, filtrage et validation des demandes d'adhésion.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'membership:adhesion_create' %}" class="btn btn-success btn-sm">Nouvelle adhésion</a>
+  </div>
+</header>
+
+<form class="filter-bar" method="get">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-5">
+      <label class="form-label">Recherche</label>
+      <input class="form-control" name="q" value="{{ q }}" placeholder="Nom, téléphone, N° membre…">
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">Statut</label>
+      <select name="statut" class="form-select">
+        <option value="">Tous les statuts</option>
+        <option value="EN_ATTENTE" {% if statut == "EN_ATTENTE" %}selected{% endif %}>En attente</option>
+        <option value="VALIDE" {% if statut == "VALIDE" %}selected{% endif %}>Validée</option>
+        <option value="REJETE" {% if statut == "REJETE" %}selected{% endif %}>Rejetée</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-3">
+      <button class="btn btn-outline-success w-100" type="submit">Filtrer</button>
+    </div>
+  </div>
+</form>
+
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 table-responsive-cards">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>N° membre</th>
+          <th>Section</th>
+          <th>Statut</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in adhesions %}
+        <tr>
+          <td data-label="Nom">
+            <span class="person-cell">
+              <span class="person-avatar">{{ a.nom|slice:":1"|upper }}</span>
+              <span class="cell-strong">{{ a.nom_complet }}</span>
+            </span>
+          </td>
+          <td data-label="N° membre" class="cell-muted">{{ a.numero_membre|default:"—" }}</td>
+          <td data-label="Section">{{ a.section_locale.nom }}</td>
+          <td data-label="Statut"><span class="badge badge-{{ a.statut|lower }}">{{ a.get_statut_display }}</span></td>
+          <td data-label="Date" class="cell-muted">{{ a.date_creation|date:"d/m/Y" }}</td>
+          <td data-label="Action" class="text-end">
+            <a class="btn btn-outline-success btn-sm" href="{% url 'membership:adhesion_detail' a.pk %}">Détail</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'membership:adhesion_fiche_pdf' a.pk %}">FORMULAIRE</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" data-label="">
+            <div class="empty-state">
+              <strong>Aucune adhésion</strong>
+              Aucun résultat pour ces critères.
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

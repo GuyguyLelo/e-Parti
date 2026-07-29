@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Impression en lot{% endblock %}
+{% block content %}
+<nav class="breadcrumb-ep">
+  <a href="{% url 'membership:membre_list' %}">Membres</a>
+  <span class="sep">/</span>
+  <span>Impression</span>
+</nav>
+
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Cartes</span>
+    <h1 class="page-title">Impression en lot</h1>
+    <p class="page-subtitle">Sélectionnez les membres puis téléchargez un ZIP des PDF.</p>
+  </div>
+</header>
+
+<form method="get" class="form-section">
+  <h5>Sélection des membres</h5>
+  <div class="row g-2">
+    {% for m in membres %}
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="form-check detail-field mb-0">
+        <input class="form-check-input" type="checkbox" name="ids" value="{{ m.pk }}" id="m{{ m.pk }}">
+        <label class="form-check-label" for="m{{ m.pk }}">
+          <strong>{{ m.nom_complet }}</strong>
+          <span class="cell-muted d-block">{{ m.numero_membre }}</span>
+        </label>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="empty-state"><strong>Aucun membre</strong></div></div>
+    {% endfor %}
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-outline-success" type="submit">Prévisualiser</button>
+  </div>
+</form>
+
+{% if cartes %}
+<div class="panel">
+  <div class="panel-header">
+    <h5>{{ cartes|length }} carte(s) sélectionnée(s)</h5>
+  </div>
+  <ul class="mb-3">
+    {% for c in cartes %}
+    <li>
+      {{ c.membre.nom_complet }} — {{ c.numero_carte }}
+      {% if c.fichier_pdf %}<a href="{{ c.fichier_pdf.url }}" target="_blank">PDF</a>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <form method="post">
+    {% csrf_token %}
+    {% for c in cartes %}<input type="hidden" name="ids" value="{{ c.membre_id }}">{% endfor %}
+    <input type="hidden" name="action" value="download_zip">
+    <button class="btn btn-success" type="submit">Télécharger ZIP</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

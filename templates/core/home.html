@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Accueil{% endblock %}
+{% block content %}
+<section class="hero mb-4">
+  <div class="hero-brand">
+    <img src="{% static 'img/logo.png' %}" alt="{{ EPARTI_ORG }}" class="hero-logo">
+    <div>
+      <p class="hero-slogan mb-1">{{ EPARTI_SLOGAN }}</p>
+      <h1 class="hero-title">{{ EPARTI_ORG }}</h1>
+    </div>
+  </div>
+  <p class="lead mb-0">
+    Plateforme nationale de gestion des adhésions, membres, cartes et campagnes
+    en République Démocratique du Congo.
+  </p>
+  <div class="hero-actions">
+    <a href="{% url 'membership:adhesion_create' %}" class="btn btn-gold btn-lg">Adhérer maintenant</a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-light btn-lg">Ouvrir le dashboard</a>
+    {% else %}
+    <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg">Espace responsables</a>
+    {% endif %}
+  </div>
+</section>
+
+<div class="row g-3">
+  <div class="col-6 col-md-4">
+    <div class="card stat-card accent-blue p-3 h-100">
+      <div class="text-muted small fw-semibold text-uppercase">Membres actifs</div>
+      <div class="stat-value fs-2">{{ stats.membres }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="card stat-card accent-yellow p-3 h-100">
+      <div class="text-muted small fw-semibold text-uppercase">Provinces</div>
+      <div class="stat-value fs-2 text-warning">{{ stats.provinces }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card stat-card accent-red p-3 h-100">
+      <div class="text-muted small fw-semibold text-uppercase">Adhésions en attente</div>
+      <div class="stat-value fs-2 text-danger">{{ stats.adhesions_attente }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

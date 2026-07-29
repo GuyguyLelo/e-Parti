@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Nouvel événement{% endblock %}
+{% block content %}
+<nav class="breadcrumb-ep">
+  <a href="{% url 'organisation:evenement_list' %}">Campagnes</a>
+  <span class="sep">/</span>
+  <span>Nouveau</span>
+</nav>
+
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Organisation</span>
+    <h1 class="page-title">Créer un événement</h1>
+    <p class="page-subtitle">Meeting, mobilisation, formation ou assemblée.</p>
+  </div>
+</header>
+
+<form method="post" class="form-section col-lg-8 px-0">
+  <div class="p-4">
+    {% csrf_token %}
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-12 {% if field.name == 'type' or field.name == 'date' or field.name == 'participants_attendus' %}col-md-6{% endif %}">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-success" type="submit">Créer</button>
+      <a href="{% url 'organisation:evenement_list' %}" class="btn btn-outline-secondary">Annuler</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Événements{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Organisation</span>
+    <h1 class="page-title">Campagnes &amp; mobilisations</h1>
+    <p class="page-subtitle">Événements à venir et actions de terrain.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'organisation:evenement_create' %}" class="btn btn-success btn-sm">Nouvel événement</a>
+  </div>
+</header>
+
+<div class="list-stack">
+  {% for e in evenements %}
+  <article class="list-item-card">
+    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+      <div>
+        <h2 class="h6 mb-1" style="font-family:var(--ep-display);color:var(--ep-blue-deeper);">{{ e.titre }}</h2>
+        <div class="cell-muted">{{ e.date|date:"d/m/Y H:i" }} — {{ e.lieu }}</div>
+      </div>
+      <span class="badge bg-secondary">{{ e.get_type_display }}</span>
+    </div>
+    {% if e.description %}
+    <p class="mb-0 mt-2">{{ e.description|truncatewords:35 }}</p>
+    {% endif %}
+  </article>
+  {% empty %}
+  <div class="panel">
+    <div class="empty-state">
+      <strong>Aucun événement</strong>
+      Créez une première campagne ou mobilisation.
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

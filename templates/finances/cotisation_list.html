@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Cotisations{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Finances</span>
+    <h1 class="page-title">Cotisations</h1>
+    <p class="page-subtitle">Total affiché : <strong>{{ total }} CDF</strong></p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'finances:cotisation_create' %}" class="btn btn-success btn-sm">Ajouter</a>
+    <a href="{% url 'finances:rapport' %}" class="btn btn-outline-success btn-sm">Rapports</a>
+    <a href="{% url 'finances:export_excel' %}" class="btn btn-outline-secondary btn-sm">Export Excel</a>
+  </div>
+</header>
+
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 table-responsive-cards">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Membre</th>
+          <th>Type</th>
+          <th>Montant</th>
+          <th>Mode</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cotisations %}
+        <tr>
+          <td data-label="Date" class="cell-muted">{{ c.date_paiement|date:"d/m/Y" }}</td>
+          <td data-label="Membre">
+            <span class="person-cell">
+              <span class="person-avatar">{{ c.membre.adhesion.nom|slice:":1"|upper }}</span>
+              <span class="cell-strong">{{ c.membre.nom_complet }}</span>
+            </span>
+          </td>
+          <td data-label="Type"><span class="badge bg-secondary">{{ c.get_type_display }}</span></td>
+          <td data-label="Montant" class="cell-strong">{{ c.montant }} {{ c.devise }}</td>
+          <td data-label="Mode" class="cell-muted">{{ c.mode_paiement|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" data-label="">
+            <div class="empty-state">
+              <strong>Aucune cotisation</strong>
+              Enregistrez un premier paiement pour commencer.
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

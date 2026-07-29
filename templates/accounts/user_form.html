@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-ep">
+  <a href="{% url 'accounts:user_list' %}">Utilisateurs</a>
+  <span class="sep">/</span>
+  <span>{% if is_create %}Nouveau{% else %}Modifier{% endif %}</span>
+</nav>
+
+<header class="page-header page-header-compact">
+  <div class="page-header-text">
+    <span class="page-kicker">Administration</span>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-subtitle">Renseignez le profil, le rôle et le périmètre territorial.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_list' %}">Retour</a>
+  </div>
+</header>
+
+<form method="post" novalidate class="form-compact">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-section">
+    <h5><span class="step">1</span> Identité</h5>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label class="form-label">Identifiant *</label>{{ form.username }}
+        {% if form.username.errors %}<div class="field-error">{{ form.username.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Nom</label>{{ form.nom }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Post-nom</label>{{ form.post_nom }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Prénom</label>{{ form.prenom }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Email</label>{{ form.email }}
+        {% if form.email.errors %}<div class="field-error">{{ form.email.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Téléphone</label>{{ form.telephone }}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">2</span> Rôle &amp; périmètre</h5>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label class="form-label">Rôle *</label>{{ form.role }}
+        {% if form.role.errors %}<div class="field-error">{{ form.role.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Province</label>{{ form.province }}
+        {% if form.province.errors %}<div class="field-error">{{ form.province.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Section locale</label>{{ form.section_locale }}
+        {% if form.section_locale.errors %}<div class="field-error">{{ form.section_locale.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check mb-1">
+          {{ form.is_active }}
+          <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Compte actif</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h5><span class="step">3</span> Mot de passe</h5>
+    <div class="row g-2">
+      {% if is_create %}
+      <div class="col-md-6">
+        <label class="form-label">Mot de passe *</label>{{ form.password1 }}
+        {% if form.password1.errors %}<div class="field-error">{{ form.password1.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Confirmation *</label>{{ form.password2 }}
+        {% if form.password2.errors %}<div class="field-error">{{ form.password2.errors }}</div>{% endif %}
+      </div>
+      {% else %}
+      <div class="col-md-6">
+        <label class="form-label">Nouveau mot de passe</label>{{ form.new_password }}
+        <div class="form-text">Laisser vide pour ne pas modifier.</div>
+        {% if form.new_password.errors %}<div class="field-error">{{ form.new_password.errors }}</div>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">{% if is_create %}Créer{% else %}Enregistrer{% endif %}</button>
+      <a class="btn btn-outline-secondary" href="{% url 'accounts:user_list' %}">Annuler</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

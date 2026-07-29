@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Adhésion {{ adhesion.nom_complet }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-ep">
+  <a href="{% url 'membership:adhesion_list' %}">Adhésions</a>
+  <span class="sep">/</span>
+  <span>Détail</span>
+</nav>
+
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Fiche adhésion</span>
+    <h1 class="page-title">{{ adhesion.nom_complet }}</h1>
+    <p class="page-subtitle">
+      <span class="badge badge-{{ adhesion.statut|lower }}">{{ adhesion.get_statut_display }}</span>
+      {% if adhesion.numero_membre %}
+      <span class="meta-pill ms-2">{{ adhesion.numero_membre }}</span>
+      {% endif %}
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'membership:adhesion_fiche_pdf' adhesion.pk %}">Télécharger la fiche PDF</a>
+  </div>
+</header>
+
+<div class="detail-layout">
+  <div class="panel">
+    <div class="panel-header"><h5>Informations personnelles</h5></div>
+    <div class="detail-grid">
+      <div class="detail-field">
+        <span class="label">Téléphone</span>
+        <span class="value">{{ adhesion.telephone }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Email</span>
+        <span class="value">{{ adhesion.email|default:"—" }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Sexe / État civil</span>
+        <span class="value">{{ adhesion.get_sexe_display }} / {{ adhesion.get_etat_civil_display }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Naissance</span>
+        <span class="value">{{ adhesion.date_naissance|date:"d/m/Y" }} — {{ adhesion.lieu_naissance }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Adresse</span>
+        <span class="value">{{ adhesion.adresse }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Province d'origine</span>
+        <span class="value">{{ adhesion.province_origine }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Section locale</span>
+        <span class="value">{{ adhesion.section_locale }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Pièce d'identité</span>
+        <span class="value">{{ adhesion.get_type_piece_identite_display }} — {{ adhesion.numero_piece_identite }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Profession</span>
+        <span class="value">{{ adhesion.profession|default:"—" }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Niveau d'études</span>
+        <span class="value">{{ adhesion.get_niveau_etudes_display|default:"—" }}</span>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <div class="label">Motivations</div>
+      <p class="mb-0">{{ adhesion.motivations }}</p>
+    </div>
+
+    {% if adhesion.motif_rejet %}
+    <div class="alert alert-danger mt-3 mb-0">Motif du rejet : {{ adhesion.motif_rejet }}</div>
+    {% endif %}
+  </div>
+
+  <aside class="sidebar-card">
+    {% if adhesion.photo1 %}
+    <div class="photo-frame">
+      <img src="{{ adhesion.photo1.url }}" alt="Photo {{ adhesion.nom_complet }}">
+    </div>
+    {% endif %}
+    <div class="action-stack">
+      <a class="btn btn-primary w-100" href="{% url 'membership:adhesion_fiche_pdf' adhesion.pk %}">Télécharger la fiche PDF</a>
+      {% if adhesion.statut == "EN_ATTENTE" %}
+      <form method="post" action="{% url 'membership:adhesion_valider' adhesion.pk %}">
+        {% csrf_token %}
+        <button class="btn btn-success w-100" type="submit">Valider et générer carte</button>
+      </form>
+      <div class="panel mb-0 p-3">
+        <h6 class="mb-2" style="font-family:var(--ep-display);color:var(--ep-blue-deeper);">Rejeter</h6>
+        <form method="post" action="{% url 'membership:adhesion_rejeter' adhesion.pk %}">
+          {% csrf_token %}
+          {{ rejet_form.motif }}
+          <button class="btn btn-outline-danger w-100 mt-2" type="submit">Confirmer le rejet</button>
+        </form>
+      </div>
+      {% elif adhesion.statut == "VALIDE" and adhesion.membre %}
+      <a class="btn btn-outline-success w-100" href="{% url 'membership:carte_detail' adhesion.membre.pk %}">Voir la carte</a>
+      {% endif %}
+      <a class="btn btn-outline-secondary w-100" href="{% url 'membership:adhesion_list' %}">Retour à la liste</a>
+    </div>
+  </aside>
+</div>
+{% endblock %}

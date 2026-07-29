@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Adhésion enregistrée{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="form-section text-center">
+      <span class="page-kicker">Confirmation</span>
+      <h1 class="page-title h3">Demande enregistrée</h1>
+      <p class="page-subtitle mx-auto">
+        Merci <strong>{{ adhesion.nom_complet }}</strong>. Votre demande est en cours d'examen.
+      </p>
+      <p class="meta-pill mt-3">Référence #{{ adhesion.pk }}</p>
+      <div class="form-actions justify-content-center border-0">
+        <a href="{% url 'membership:adhesion_fiche_pdf' adhesion.pk %}" class="btn btn-success">Télécharger ma fiche PDF</a>
+        <a href="{% url 'core:home' %}" class="btn btn-outline-success">Retour à l'accueil</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

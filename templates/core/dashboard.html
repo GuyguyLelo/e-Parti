@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Pilotage</span>
+    <h1 class="page-title">Tableau de bord</h1>
+    <p class="page-subtitle">Indicateurs nationaux, provincialité et activité récente.</p>
+  </div>
+</header>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card accent-blue p-3 h-100">
+      <div class="text-muted small fw-semibold text-uppercase">Membres</div>
+      <div class="stat-value fs-3">{{ total_membres }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card accent-yellow p-3 h-100">
+      <div class="text-muted small fw-semibold text-uppercase">En attente</div>
+      <div class="stat-value fs-3 text-warning">{{ adhesions_attente }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card accent-blue p-3 h-100">
+      <div class="text-muted small fw-semibold text-uppercase">Validées</div>
+      <div class="stat-value fs-3 text-success">{{ adhesions_validees }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card accent-red p-3 h-100">
+      <div class="text-muted small fw-semibold text-uppercase">Activité 90j</div>
+      <div class="stat-value fs-3">{{ taux_activite }}%</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-2">
+  <div class="col-lg-8">
+    <div class="form-section chart-panel h-100">
+      <h5>Croissance mensuelle des membres</h5>
+      <div class="chart-wrap">
+        <canvas id="chartCroissance" aria-label="Graphique croissance mensuelle"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="form-section chart-panel h-100">
+      <h5>Statut des adhésions</h5>
+      <div class="chart-wrap chart-wrap-sm">
+        <canvas id="chartStatuts" aria-label="Graphique statuts adhésions"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-2">
+  <div class="col-lg-7">
+    <div class="form-section chart-panel h-100">
+      <h5>Membres par province</h5>
+      <div class="chart-wrap">
+        <canvas id="chartProvinces" aria-label="Graphique membres par province"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="form-section chart-panel h-100">
+      <h5>Finances par type</h5>
+      <p class="text-muted small mb-2">Total : <strong>{{ total_finances }} CDF</strong></p>
+      <div class="chart-wrap chart-wrap-sm">
+        <canvas id="chartFinances" aria-label="Graphique finances"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel mt-3">
+  <div class="panel-header"><h5>Dernières adhésions</h5></div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle mb-0 table-responsive-cards">
+      <thead>
+        <tr><th>Nom</th><th>Statut</th><th>Section</th><th>Date</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for a in dernieres_adhesions %}
+        <tr>
+          <td data-label="Nom" class="cell-strong">{{ a.nom_complet }}</td>
+          <td data-label="Statut"><span class="badge badge-{{ a.statut|lower }}">{{ a.get_statut_display }}</span></td>
+          <td data-label="Section" class="cell-muted">{{ a.section_locale.nom }}</td>
+          <td data-label="Date" class="cell-muted">{{ a.date_creation|date:"d/m/Y" }}</td>
+          <td data-label="Action" class="text-end"><a class="btn btn-outline-success btn-sm" href="{% url 'membership:adhesion_detail' a.pk %}">Voir</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" data-label=""><div class="empty-state py-4"><strong>Aucune adhésion</strong></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{ chart_provinces|json_script:"data-provinces" }}
+{{ chart_croissance|json_script:"data-croissance" }}
+{{ chart_statuts|json_script:"data-statuts" }}
+{{ chart_finances|json_script:"data-finances" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const COLORS = {
+    blue: "#30A2DE",
+    blueDark: "#0E5F8C",
+    yellow: "#F0D74D",
+    red: "#D32125",
+    cyan: "#5DB3E3",
+    muted: "#5A6B76",
+    palette: ["#30A2DE", "#0E5F8C", "#F0D74D", "#D32125", "#5DB3E3", "#1A7FB8", "#87CEEB", "#E8833A"],
+  };
+
+  function readJson(id) {
+    const el = document.getElementById(id);
+    if (!el) return { labels: [], data: [] };
+    try { return JSON.parse(el.textContent); }
+    catch (e) { return { labels: [], data: [] }; }
+  }
+
+  const provinces = readJson("data-provinces");
+  const croissance = readJson("data-croissance");
+  const statuts = readJson("data-statuts");
+  const finances = readJson("data-finances");
+
+  const emptyPlugin = {
+    id: "emptyState",
+    afterDraw(chart) {
+      const data = chart.data.datasets[0]?.data || [];
+      const hasData = data.some((v) => Number(v) > 0);
+      if (hasData) return;
+      const { ctx, chartArea } = chart;
+      if (!chartArea) return;
+      ctx.save();
+      ctx.fillStyle = COLORS.muted;
+      ctx.textAlign = "center";
+      ctx.font = "13px Manrope, sans-serif";
+      ctx.fillText("Aucune donnée", (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
+      ctx.restore();
+    },
+  };
+
+  new Chart(document.getElementById("chartCroissance"), {
+    type: "line",
+    data: {
+      labels: croissance.labels.length ? croissance.labels : ["—"],
+      datasets: [{
+        label: "Nouveaux membres",
+        data: croissance.data.length ? croissance.data : [0],
+        borderColor: COLORS.blue,
+        backgroundColor: "rgba(48, 162, 222, 0.18)",
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: COLORS.yellow,
+        pointBorderColor: COLORS.blueDark,
+        pointRadius: 3,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(48,162,222,0.12)" } },
+        x: { grid: { display: false } },
+      },
+    },
+    plugins: [emptyPlugin],
+  });
+
+  new Chart(document.getElementById("chartStatuts"), {
+    type: "doughnut",
+    data: {
+      labels: statuts.labels,
+      datasets: [{
+        data: statuts.data,
+        backgroundColor: [COLORS.yellow, COLORS.blue, COLORS.red],
+        borderWidth: 2,
+        borderColor: "#fff",
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "58%",
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } },
+    },
+    plugins: [emptyPlugin],
+  });
+
+  new Chart(document.getElementById("chartProvinces"), {
+    type: "bar",
+    data: {
+      labels: provinces.labels.length ? provinces.labels : ["—"],
+      datasets: [{
+        label: "Membres",
+        data: provinces.data.length ? provinces.data : [0],
+        backgroundColor: COLORS.palette,
+        borderRadius: 5,
+        maxBarThickness: 22,
+      }],
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(48,162,222,0.12)" } },
+        y: { grid: { display: false } },
+      },
+    },
+    plugins: [emptyPlugin],
+  });
+
+  new Chart(document.getElementById("chartFinances"), {
+    type: "pie",
+    data: {
+      labels: finances.labels.length ? finances.labels : ["Aucune cotisation"],
+      datasets: [{
+        data: finances.data.length ? finances.data : [1],
+        backgroundColor: finances.data.length
+          ? [COLORS.blue, COLORS.yellow, COLORS.red, COLORS.cyan]
+          : ["#d9e6ef"],
+        borderWidth: 2,
+        borderColor: "#fff",
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (c) => finances.data.length
+              ? ` ${c.label}: ${Number(c.raw).toLocaleString("fr-FR")} CDF`
+              : " Aucune donnée",
+          },
+        },
+      },
+    },
+    plugins: [emptyPlugin],
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Membres{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Membership</span>
+    <h1 class="page-title">Membres actifs</h1>
+    <p class="page-subtitle">Annuaire des membres validés et accès aux cartes.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'membership:impression' %}" class="btn btn-outline-success btn-sm">Impression en lot</a>
+  </div>
+</header>
+
+<form class="filter-bar" method="get">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-9">
+      <label class="form-label">Recherche</label>
+      <input class="form-control" name="q" value="{{ q }}" placeholder="Nom, post-nom, N° membre…">
+    </div>
+    <div class="col-12 col-md-3">
+      <button class="btn btn-success w-100" type="submit">Rechercher</button>
+    </div>
+  </div>
+</form>
+
+<div class="table-panel">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 table-responsive-cards">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>N° membre</th>
+          <th>Section</th>
+          <th>Activation</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in membres %}
+        <tr>
+          <td data-label="Nom">
+            <a href="{% url 'membership:membre_detail' m.pk %}" class="person-cell text-decoration-none">
+              {% if m.adhesion.photo1 %}
+              <img src="{{ m.adhesion.photo1.url }}" alt="" class="person-avatar" style="object-fit:cover;padding:0;">
+              {% else %}
+              <span class="person-avatar">{{ m.adhesion.nom|slice:":1"|upper }}</span>
+              {% endif %}
+              <span class="cell-strong">{{ m.nom_complet }}</span>
+            </a>
+          </td>
+          <td data-label="N° membre" class="cell-muted">{{ m.numero_membre }}</td>
+          <td data-label="Section">{{ m.section_locale.nom }}</td>
+          <td data-label="Activation" class="cell-muted">{{ m.date_activation|date:"d/m/Y" }}</td>
+          <td data-label="Actions" class="text-end">
+            <a class="btn btn-outline-success btn-sm" href="{% url 'membership:membre_detail' m.pk %}">Détail</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'membership:membre_edit' m.pk %}">Modifier</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'membership:carte_detail' m.pk %}">Carte</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" data-label="">
+            <div class="empty-state">
+              <strong>Aucun membre</strong>
+              Aucun membre actif trouvé.
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

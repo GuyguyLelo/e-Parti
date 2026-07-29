@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Carte {{ membre.numero_membre }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-ep">
+  <a href="{% url 'membership:membre_list' %}">Membres</a>
+  <span class="sep">/</span>
+  <a href="{% url 'membership:membre_detail' membre.pk %}">{{ membre.nom_complet }}</a>
+  <span class="sep">/</span>
+  <span>Carte</span>
+</nav>
+
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Carte PVC · Recto-verso</span>
+    <h1 class="page-title">{{ membre.nom_complet }}</h1>
+    <p class="page-subtitle">N° membre <span class="meta-pill">{{ membre.numero_membre }}</span> — PDF 2 faces (recto + verso)</p>
+  </div>
+</header>
+
+<div class="detail-layout">
+  <div class="panel">
+    <div class="panel-header"><h5>Informations carte</h5></div>
+    {% if carte %}
+    <div class="detail-grid">
+      <div class="detail-field">
+        <span class="label">N° carte</span>
+        <span class="value">{{ carte.numero_carte }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Statut</span>
+        <span class="value">{% if carte.est_expiree %}<span class="text-danger">Expirée</span>{% else %}<span class="text-success">Active</span>{% endif %}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Date d'émission</span>
+        <span class="value">{{ carte.date_emission|date:"d/m/Y" }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="label">Date d'expiration</span>
+        <span class="value">{{ carte.date_expiration|date:"d/m/Y" }}</span>
+      </div>
+    </div>
+    <div class="form-actions">
+      {% if carte.fichier_pdf %}
+      <a class="btn btn-success" href="{% url 'membership:carte_telecharger' membre.pk %}">Télécharger PDF</a>
+      <a class="btn btn-outline-secondary" href="{{ carte.fichier_pdf.url }}" target="_blank">Imprimer</a>
+      {% endif %}
+      <form method="post" action="{% url 'membership:carte_generer' membre.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button class="btn btn-outline-success" type="submit">Régénérer</button>
+      </form>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <strong>Aucune carte générée</strong>
+      <form method="post" action="{% url 'membership:carte_generer' membre.pk %}" class="mt-3">
+        {% csrf_token %}
+        <button class="btn btn-success" type="submit">Générer la carte</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <aside>
+    {% if carte and carte.image_carte %}
+    <div class="card-preview mx-auto mx-lg-0">
+      <img src="{{ carte.image_carte.url }}" alt="Aperçu carte" class="img-fluid d-block w-100">
+    </div>
+    {% elif carte and carte.qr_code %}
+    <div class="sidebar-card text-center">
+      <img src="{{ carte.qr_code.url }}" alt="QR" width="140">
+    </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Membre {{ membre.nom_complet }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-ep">
+  <a href="{% url 'membership:membre_list' %}">Membres</a>
+  <span class="sep">/</span>
+  <span>Détail</span>
+</nav>
+
+<header class="page-header page-header-compact">
+  <div class="page-header-text">
+    <span class="page-kicker">Fiche membre</span>
+    <h1 class="page-title">{{ membre.nom_complet }}</h1>
+    <p class="page-subtitle">
+      {% if membre.actif %}
+      <span class="badge badge-valide">Actif</span>
+      {% else %}
+      <span class="badge badge-rejete">Inactif</span>
+      {% endif %}
+      <span class="meta-pill ms-2">{{ membre.numero_membre }}</span>
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary btn-sm" href="{% url 'membership:membre_edit' membre.pk %}">Modifier</a>
+    <a class="btn btn-outline-success btn-sm" href="{% url 'membership:carte_detail' membre.pk %}">Voir la carte</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'membership:adhesion_detail' adhesion.pk %}">Adhésion source</a>
+  </div>
+</header>
+
+<div class="detail-layout detail-compact">
+  <div>
+    <div class="panel">
+      <div class="panel-header"><h5>Identité</h5></div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="label">Nom</span>
+          <span class="value">{{ adhesion.nom }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Post-nom</span>
+          <span class="value">{{ adhesion.post_nom }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Prénom</span>
+          <span class="value">{{ adhesion.prenom }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">N° membre</span>
+          <span class="value">{{ membre.numero_membre }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Sexe / État civil</span>
+          <span class="value">{{ adhesion.get_sexe_display }} / {{ adhesion.get_etat_civil_display }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Naissance</span>
+          <span class="value">{{ adhesion.date_naissance|date:"d/m/Y" }} — {{ adhesion.lieu_naissance }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Nationalité</span>
+          <span class="value">{{ adhesion.nationalite }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Profession</span>
+          <span class="value">{{ adhesion.profession|default:"—" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h5>Coordonnées &amp; localisation</h5></div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="label">Téléphone</span>
+          <span class="value">{{ adhesion.telephone }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Email</span>
+          <span class="value">{{ adhesion.email|default:"—" }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Adresse</span>
+          <span class="value">{{ adhesion.adresse }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Province d'origine</span>
+          <span class="value">{{ adhesion.province_origine }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Section locale</span>
+          <span class="value">{{ adhesion.section_locale }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Province de section</span>
+          <span class="value">{{ adhesion.section_locale.province }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h5>Pièce d'identité &amp; adhésion</h5></div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="label">Type de pièce</span>
+          <span class="value">{{ adhesion.get_type_piece_identite_display }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">N° pièce</span>
+          <span class="value">{{ adhesion.numero_piece_identite }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Niveau d'études</span>
+          <span class="value">{{ adhesion.get_niveau_etudes_display|default:"—" }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Date d'activation</span>
+          <span class="value">{{ membre.date_activation|date:"d/m/Y H:i" }}</span>
+        </div>
+      </div>
+      {% if adhesion.motivations %}
+      <div class="detail-block">
+        <div class="label">Motivations</div>
+        <p class="mb-0">{{ adhesion.motivations }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if carte %}
+    <div class="panel">
+      <div class="panel-header"><h5>Carte de membre</h5></div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="label">N° carte</span>
+          <span class="value">{{ carte.numero_carte }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Statut carte</span>
+          <span class="value">{% if carte.est_expiree %}<span class="text-danger">Expirée</span>{% else %}<span class="text-success">Active</span>{% endif %}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Émise le</span>
+          <span class="value">{{ carte.date_emission|date:"d/m/Y" }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="label">Expire le</span>
+          <span class="value">{{ carte.date_expiration|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+      <div class="form-actions">
+        <a class="btn btn-success btn-sm" href="{% url 'membership:carte_detail' membre.pk %}">Ouvrir la carte</a>
+        {% if carte.fichier_pdf %}
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'membership:carte_telecharger' membre.pk %}">Télécharger PDF</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <aside class="sidebar-card">
+    {% if adhesion.photo1 %}
+    <div class="photo-frame">
+      <img src="{{ adhesion.photo1.url }}" alt="Photo de {{ membre.nom_complet }}">
+    </div>
+    {% else %}
+    <div class="photo-frame photo-frame-empty d-flex align-items-center justify-content-center">
+      <div class="text-center p-2">
+        <div class="person-avatar mx-auto mb-1">
+          {{ adhesion.nom|slice:":1"|upper }}
+        </div>
+        <span class="cell-muted">Aucune photo</span>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if adhesion.photo2 %}
+    <div class="sidebar-photo-extra">
+      <div class="label">Photo supplémentaire</div>
+      <img src="{{ adhesion.photo2.url }}" alt="Photo 2" class="img-fluid rounded">
+    </div>
+    {% endif %}
+
+    <div class="action-stack">
+      <a class="btn btn-primary btn-sm w-100" href="{% url 'membership:membre_edit' membre.pk %}">Modifier la fiche</a>
+      <a class="btn btn-success btn-sm w-100" href="{% url 'membership:carte_detail' membre.pk %}">Voir / imprimer la carte</a>
+      <a class="btn btn-outline-success btn-sm w-100" href="{% url 'membership:adhesion_detail' adhesion.pk %}">Voir l'adhésion</a>
+      <a class="btn btn-outline-secondary btn-sm w-100" href="{% url 'membership:membre_list' %}">Retour à la liste</a>
+    </div>
+  </aside>
+</div>
+{% endblock %}

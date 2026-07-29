@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Vérification membre{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="form-section text-center">
+      <span class="page-kicker">Contrôle QR</span>
+      <h1 class="page-title h3">Vérification de carte</h1>
+      {% if valide %}
+      <div class="alert alert-success mt-3">Carte <strong>valide</strong></div>
+      {% else %}
+      <div class="alert alert-warning mt-3">Membre trouvé mais carte inactive ou expirée</div>
+      {% endif %}
+      <p class="fs-5 fw-bold mb-1" style="font-family:var(--ep-display);color:var(--ep-blue-deeper);">{{ adhesion.nom_complet }}</p>
+      <p class="meta-pill">{{ adhesion.numero_membre }}</p>
+      <p class="cell-muted mt-3 mb-1">Section : {{ adhesion.section_locale }}</p>
+      {% if carte %}
+      <p class="cell-muted mb-0">Carte {{ carte.numero_carte }} — expire le {{ carte.date_expiration|date:"d/m/Y" }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
