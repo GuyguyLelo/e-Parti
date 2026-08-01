@@ -55,14 +55,11 @@ def adhesion_list(request):
     qs = scope_adhesions(
         Adhesion.objects.select_related(
             "section_locale__commune__ville__province", "province_origine"
-        ),
+        ).filter(statut=Adhesion.Statut.EN_ATTENTE),
         request.user,
     )
 
-    statut = request.GET.get("statut")
     q = request.GET.get("q", "").strip()
-    if statut:
-        qs = qs.filter(statut=statut)
     if q:
         qs = qs.filter(
             Q(nom__icontains=q)
@@ -76,7 +73,6 @@ def adhesion_list(request):
         "membership/adhesion_list.html",
         {
             "adhesions": qs[:200],
-            "statut": statut,
             "q": q,
             "section_locale": getattr(request.user, "section_locale", None),
         },
