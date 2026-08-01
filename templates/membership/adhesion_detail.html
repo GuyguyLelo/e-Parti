@@ -19,7 +19,9 @@
     </p>
   </div>
   <div class="page-actions">
+    {% if adhesion.statut == "VALIDE" %}
     <a class="btn btn-outline-primary btn-sm" href="{% url 'membership:adhesion_fiche_pdf' adhesion.pk %}">Télécharger la fiche PDF</a>
+    {% endif %}
   </div>
 </header>
 
@@ -86,7 +88,9 @@
     </div>
     {% endif %}
     <div class="action-stack">
+      {% if adhesion.statut == "VALIDE" %}
       <a class="btn btn-primary w-100" href="{% url 'membership:adhesion_fiche_pdf' adhesion.pk %}">Télécharger la fiche PDF</a>
+      {% endif %}
       {% if adhesion.statut == "EN_ATTENTE" %}
       <form method="post" action="{% url 'membership:adhesion_valider' adhesion.pk %}">
         {% csrf_token %}

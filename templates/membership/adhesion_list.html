@@ -61,7 +61,9 @@
           <td data-label="Date" class="cell-muted">{{ a.date_creation|date:"d/m/Y" }}</td>
           <td data-label="Action" class="text-end">
             <a class="btn btn-outline-success btn-sm" href="{% url 'membership:adhesion_detail' a.pk %}">Détail</a>
+            {% if a.statut == "VALIDE" %}
             <a class="btn btn-outline-primary btn-sm" href="{% url 'membership:adhesion_fiche_pdf' a.pk %}">FORMULAIRE</a>
+            {% endif %}
           </td>
         </tr>
         {% empty %}

@@ -8,7 +8,7 @@ from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
-from core.permissions import role_required, scope_membres
+from core.permissions import role_required, scope_cotisations, scope_membres
 from finances.formatting import format_montant
 from finances.models import Cotisation
 from membership.forms import CotisationForm
@@ -31,9 +31,12 @@ def _totaux_par_devise(qs):
 @login_required
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def cotisation_list(request):
-    qs = Cotisation.objects.select_related("membre__adhesion")
-    membres = scope_membres(Membre.objects.all(), request.user)
-    qs = qs.filter(membre__in=membres)
+    qs = scope_cotisations(
+        Cotisation.objects.select_related(
+            "membre__adhesion__section_locale"
+        ),
+        request.user,
+    )
 
     return render(
         request,
@@ -41,6 +44,7 @@ def cotisation_list(request):
         {
             "cotisations": qs[:200],
             "totaux": _totaux_par_devise(qs),
+            "section_locale": getattr(request.user, "section_locale", None),
         },
     )
 
@@ -67,8 +71,7 @@ def cotisation_create(request):
 @login_required
 @role_required("ADMIN_NATIONAL", "PROVINCIAL")
 def rapport_financier(request):
-    membres = scope_membres(Membre.objects.all(), request.user)
-    qs = Cotisation.objects.filter(membre__in=membres)
+    qs = scope_cotisations(Cotisation.objects.all(), request.user)
 
     par_type = (
         qs.values("type", "devise")
@@ -90,9 +93,9 @@ def rapport_financier(request):
 def export_excel(request):
     from openpyxl import Workbook
 
-    membres = scope_membres(Membre.objects.all(), request.user)
-    qs = Cotisation.objects.select_related("membre__adhesion").filter(
-        membre__in=membres
+    qs = scope_cotisations(
+        Cotisation.objects.select_related("membre__adhesion"),
+        request.user,
     )
     wb = Workbook()
     ws = wb.active

@@ -7,6 +7,7 @@
     <span class="page-kicker">Finances</span>
     <h1 class="page-title">Cotisations</h1>
     <p class="page-subtitle">
+      {% if section_locale %}Section <strong>{{ section_locale.nom }}</strong> — {% endif %}
       Total affiché :
       {% if totaux %}
         <strong>{{ totaux|join:" · " }}</strong>
@@ -17,8 +18,10 @@
   </div>
   <div class="page-actions">
     <a href="{% url 'finances:cotisation_create' %}" class="btn btn-success btn-sm">Ajouter</a>
+    {% if user.is_admin_national or user.is_provincial %}
     <a href="{% url 'finances:rapport' %}" class="btn btn-outline-success btn-sm">Rapports</a>
     <a href="{% url 'finances:export_excel' %}" class="btn btn-outline-secondary btn-sm">Export Excel</a>
+    {% endif %}
   </div>
 </header>
 

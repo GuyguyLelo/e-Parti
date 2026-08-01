@@ -143,7 +143,7 @@ def adhesion_rejeter(request, pk):
 
 
 def adhesion_fiche_pdf(request, pk):
-    """Téléchargement PDF de la fiche d'adhésion officielle."""
+    """Téléchargement PDF — réservé aux adhésions validées."""
     adhesion = get_object_or_404(
         Adhesion.objects.select_related(
             "section_locale__commune__ville__province",
@@ -151,6 +151,7 @@ def adhesion_fiche_pdf(request, pk):
             "valide_par",
         ),
         pk=pk,
+        statut=Adhesion.Statut.VALIDE,
     )
     pdf_bytes = generate_fiche_adhesion_pdf(adhesion)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")

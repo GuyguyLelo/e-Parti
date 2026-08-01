@@ -208,6 +208,7 @@ class RejetAdhesionForm(forms.Form):
 
 class CotisationForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
+        self.user = user
         super().__init__(*args, **kwargs)
         from core.permissions import scope_membres
         from membership.models import Membre
@@ -218,6 +219,16 @@ class CotisationForm(forms.ModelForm):
         self.fields["membre"].queryset = qs.order_by(
             "adhesion__nom", "adhesion__post_nom", "adhesion__prenom"
         )
+
+    def clean_membre(self):
+        from core.permissions import user_can_access_membre
+
+        membre = self.cleaned_data["membre"]
+        if self.user is not None and not user_can_access_membre(self.user, membre):
+            raise forms.ValidationError(
+                "Ce membre n'appartient pas à votre section / province."
+            )
+        return membre
 
     class Meta:
         from finances.models import Cotisation

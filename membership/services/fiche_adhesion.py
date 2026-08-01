@@ -189,7 +189,7 @@ def generate_fiche_adhesion_pdf(adhesion) -> bytes:
     c.drawCentredString(
         PAGE_W / 2,
         y - band_h + 3.2 * mm,
-        f"FORMULAIRE DE DEMANDE D'ADHESION N° {ref}",
+        f"FORMULAIRE D'ADHESION N° {ref}",
     )
     y -= band_h + 4 * mm
 

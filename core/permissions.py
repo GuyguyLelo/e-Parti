@@ -24,6 +24,20 @@ def role_required(*roles):
     return decorator
 
 
+def _effective_role(user):
+    """
+    Rôle territorial effectif.
+    Un compte LOCAL/PROVINCIAL reste limité à son périmètre
+    même s'il est aussi superuser.
+    """
+    role = getattr(user, "role", None)
+    if role in ("LOCAL", "PROVINCIAL", "ADMIN_NATIONAL"):
+        return role
+    if getattr(user, "is_superuser", False):
+        return "ADMIN_NATIONAL"
+    return role
+
+
 def scope_adhesions(qs, user):
     """
     Filtre les adhésions selon le rôle :
@@ -31,13 +45,14 @@ def scope_adhesions(qs, user):
     - Provincial : sa province
     - Local : uniquement sa section
     """
-    if getattr(user, "is_admin_national", False):
+    role = _effective_role(user)
+    if role == "ADMIN_NATIONAL":
         return qs
-    if user.is_provincial:
+    if role == "PROVINCIAL":
         if not user.province_id:
             return qs.none()
         return qs.filter(section_locale__commune__ville__province_id=user.province_id)
-    if user.is_local:
+    if role == "LOCAL":
         if not user.section_locale_id:
             return qs.none()
         return qs.filter(section_locale_id=user.section_locale_id)
@@ -46,31 +61,53 @@ def scope_adhesions(qs, user):
 
 def scope_membres(qs, user):
     """Filtre les membres selon le rôle (via l'adhésion liée)."""
-    if getattr(user, "is_admin_national", False):
+    role = _effective_role(user)
+    if role == "ADMIN_NATIONAL":
         return qs
-    if user.is_provincial:
+    if role == "PROVINCIAL":
         if not user.province_id:
             return qs.none()
         return qs.filter(
             adhesion__section_locale__commune__ville__province_id=user.province_id
         )
-    if user.is_local:
+    if role == "LOCAL":
         if not user.section_locale_id:
             return qs.none()
         return qs.filter(adhesion__section_locale_id=user.section_locale_id)
     return qs.none()
 
 
+def scope_cotisations(qs, user):
+    """Filtre les cotisations : un local ne voit que celles de sa section."""
+    role = _effective_role(user)
+    if role == "ADMIN_NATIONAL":
+        return qs
+    if role == "PROVINCIAL":
+        if not user.province_id:
+            return qs.none()
+        return qs.filter(
+            membre__adhesion__section_locale__commune__ville__province_id=user.province_id
+        )
+    if role == "LOCAL":
+        if not user.section_locale_id:
+            return qs.none()
+        return qs.filter(
+            membre__adhesion__section_locale_id=user.section_locale_id
+        )
+    return qs.none()
+
+
 def user_can_access_adhesion(user, adhesion) -> bool:
-    if getattr(user, "is_admin_national", False):
+    role = _effective_role(user)
+    if role == "ADMIN_NATIONAL":
         return True
-    if user.is_provincial:
+    if role == "PROVINCIAL":
         if not user.province_id:
             return False
         return (
             adhesion.section_locale.commune.ville.province_id == user.province_id
         )
-    if user.is_local:
+    if role == "LOCAL":
         if not user.section_locale_id:
             return False
         return adhesion.section_locale_id == user.section_locale_id
