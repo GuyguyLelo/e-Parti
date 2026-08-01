@@ -10,6 +10,7 @@ import unicodedata
 from pathlib import Path
 
 from django.conf import settings
+from PIL import Image as PILImage
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
@@ -133,6 +134,36 @@ def _wrap(c: canvas.Canvas, text, font, size, max_w) -> list[str]:
     return lines
 
 
+def _photo_principale_reader(adhesion) -> ImageReader | None:
+    """Charge la photo d'identité (photo1) pour le PDF."""
+    photo = getattr(adhesion, "photo1", None)
+    if not photo:
+        return None
+    try:
+        path = photo.path
+    except Exception:
+        return None
+    if not path or not Path(path).exists():
+        return None
+    try:
+        img = PILImage.open(path).convert("RGB")
+        # Recadrage centré type portrait (ratio ~ 4:5)
+        tw, th = 400, 500
+        src_w, src_h = img.size
+        scale = max(tw / src_w, th / src_h)
+        nw, nh = int(src_w * scale), int(src_h * scale)
+        img = img.resize((nw, nh), PILImage.Resampling.LANCZOS)
+        left = (nw - tw) // 2
+        top = (nh - th) // 2
+        img = img.crop((left, top, left + tw, top + th))
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=90)
+        buf.seek(0)
+        return ImageReader(buf)
+    except Exception:
+        return None
+
+
 def generate_fiche_adhesion_pdf(adhesion) -> bytes:
     """Retourne le PDF (bytes) de la fiche d'adhésion remplie."""
     buf = io.BytesIO()
@@ -206,30 +237,30 @@ def generate_fiche_adhesion_pdf(adhesion) -> bytes:
         c.drawString(box_x + 3 * mm, wy, line)
         wy -= 3.2 * mm
 
-    # Cadre photos
-    photo_w, photo_h = 24 * mm, 30 * mm
+    # Cadre photo principale
+    photo_w, photo_h = 28 * mm, 35 * mm
     photo_x = right - photo_w
     photo_y = y - photo_h
     _set_stroke(c, LINE)
     c.setLineWidth(1)
-    c.rect(photo_x, photo_y, photo_w, photo_h, stroke=1, fill=0)
-    c.setFont(FONT, 8)
-    _set_fill(c, GRAY)
-    c.drawCentredString(photo_x + photo_w / 2, photo_y + photo_h / 2 + 2 * mm, "(2) PHOTOS")
-    if adhesion.photo1:
-        try:
-            c.drawImage(
-                ImageReader(adhesion.photo1.path),
-                photo_x + 1,
-                photo_y + 1,
-                width=photo_w - 2,
-                height=photo_h - 2,
-                mask="auto",
-                preserveAspectRatio=True,
-                anchor="c",
-            )
-        except Exception:
-            pass
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(photo_x, photo_y, photo_w, photo_h, stroke=1, fill=1)
+    photo_reader = _photo_principale_reader(adhesion)
+    if photo_reader:
+        c.drawImage(
+            photo_reader,
+            photo_x + 1,
+            photo_y + 1,
+            width=photo_w - 2,
+            height=photo_h - 2,
+            preserveAspectRatio=False,
+            mask="auto",
+        )
+    else:
+        c.setFont(FONT, 8)
+        _set_fill(c, GRAY)
+        c.drawCentredString(photo_x + photo_w / 2, photo_y + photo_h / 2 + 2 * mm, "PHOTO")
+        c.drawCentredString(photo_x + photo_w / 2, photo_y + photo_h / 2 - 2 * mm, "PRINCIPALE")
 
     y = min(box_y, photo_y) - 5 * mm
     _hline(c, left, y, right, 0.8)

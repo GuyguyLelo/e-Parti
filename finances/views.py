@@ -8,28 +8,40 @@ from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
-from core.permissions import role_required
+from core.permissions import role_required, scope_membres
+from finances.formatting import format_montant
 from finances.models import Cotisation
 from membership.forms import CotisationForm
+from membership.models import Membre
+
+
+def _totaux_par_devise(qs):
+    """Liste de montants formatés, un par devise (évite de mélanger CDF/USD/EUR)."""
+    rows = (
+        qs.values("devise")
+        .annotate(total=Sum("montant"))
+        .order_by("devise")
+    )
+    return [
+        format_montant(row["total"] or 0, row["devise"] or "CDF")
+        for row in rows
+    ]
 
 
 @login_required
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def cotisation_list(request):
     qs = Cotisation.objects.select_related("membre__adhesion")
-    user = request.user
-    if user.is_provincial and user.province_id:
-        qs = qs.filter(
-            membre__adhesion__section_locale__commune__ville__province=user.province
-        )
-    elif user.is_local and user.section_locale_id:
-        qs = qs.filter(membre__adhesion__section_locale=user.section_locale)
+    membres = scope_membres(Membre.objects.all(), request.user)
+    qs = qs.filter(membre__in=membres)
 
-    total = qs.aggregate(s=Sum("montant"))["s"] or 0
     return render(
         request,
         "finances/cotisation_list.html",
-        {"cotisations": qs[:200], "total": total},
+        {
+            "cotisations": qs[:200],
+            "totaux": _totaux_par_devise(qs),
+        },
     )
 
 
@@ -37,7 +49,7 @@ def cotisation_list(request):
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def cotisation_create(request):
     if request.method == "POST":
-        form = CotisationForm(request.POST)
+        form = CotisationForm(request.POST, user=request.user)
         if form.is_valid():
             cotisation = form.save(commit=False)
             cotisation.enregistre_par = request.user
@@ -45,27 +57,30 @@ def cotisation_create(request):
             messages.success(request, "Cotisation enregistrée.")
             return redirect("finances:cotisation_list")
     else:
-        form = CotisationForm(initial={"date_paiement": date.today()})
+        form = CotisationForm(
+            user=request.user,
+            initial={"date_paiement": date.today(), "devise": Cotisation.Devise.CDF},
+        )
     return render(request, "finances/cotisation_form.html", {"form": form})
 
 
 @login_required
 @role_required("ADMIN_NATIONAL", "PROVINCIAL")
 def rapport_financier(request):
-    qs = Cotisation.objects.all()
-    user = request.user
-    if user.is_provincial and user.province_id:
-        qs = qs.filter(
-            membre__adhesion__section_locale__commune__ville__province=user.province
-        )
+    membres = scope_membres(Membre.objects.all(), request.user)
+    qs = Cotisation.objects.filter(membre__in=membres)
 
-    par_type = qs.values("type").annotate(total=Sum("montant"), n=Count("id"))
+    par_type = (
+        qs.values("type", "devise")
+        .annotate(total=Sum("montant"), n=Count("id"))
+        .order_by("type", "devise")
+    )
     return render(
         request,
         "finances/rapport.html",
         {
             "par_type": par_type,
-            "total_global": qs.aggregate(s=Sum("montant"))["s"] or 0,
+            "totaux": _totaux_par_devise(qs),
         },
     )
 
@@ -75,7 +90,10 @@ def rapport_financier(request):
 def export_excel(request):
     from openpyxl import Workbook
 
-    qs = Cotisation.objects.select_related("membre__adhesion").all()
+    membres = scope_membres(Membre.objects.all(), request.user)
+    qs = Cotisation.objects.select_related("membre__adhesion").filter(
+        membre__in=membres
+    )
     wb = Workbook()
     ws = wb.active
     ws.title = "Cotisations"

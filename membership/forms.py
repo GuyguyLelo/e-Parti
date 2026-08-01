@@ -207,6 +207,18 @@ class RejetAdhesionForm(forms.Form):
 
 
 class CotisationForm(forms.ModelForm):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from core.permissions import scope_membres
+        from membership.models import Membre
+
+        qs = Membre.objects.select_related("adhesion").filter(actif=True)
+        if user is not None:
+            qs = scope_membres(qs, user)
+        self.fields["membre"].queryset = qs.order_by(
+            "adhesion__nom", "adhesion__post_nom", "adhesion__prenom"
+        )
+
     class Meta:
         from finances.models import Cotisation
 
@@ -223,8 +235,15 @@ class CotisationForm(forms.ModelForm):
         ]
         widgets = {
             "membre": forms.Select(attrs={"class": "form-select"}),
-            "montant": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
-            "devise": forms.TextInput(attrs={"class": "form-control"}),
+            "montant": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "Ex. 25000",
+                }
+            ),
+            "devise": forms.Select(attrs={"class": "form-select"}),
             "date_paiement": forms.DateInput(
                 attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
             ),

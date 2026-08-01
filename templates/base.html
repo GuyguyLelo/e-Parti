@@ -48,12 +48,14 @@
                 <span>Dashboard</span>
               </a>
             </li>
+            {% if user.is_admin_national %}
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match and 'adhesion' in request.resolver_match.url_name and request.resolver_match.url_name != 'adhesion_create' %}active{% endif %}" href="{% url 'membership:adhesion_list' %}">
                 <span class="nav-ico">✎</span>
                 <span>Adhésions</span>
               </a>
             </li>
+            {% endif %}
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name in 'membre_list membre_detail carte_detail impression' %}active{% endif %}" href="{% url 'membership:membre_list' %}">
                 <span class="nav-ico">◎</span>

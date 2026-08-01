@@ -5,7 +5,13 @@
   <div class="page-header-text">
     <span class="page-kicker">Membership</span>
     <h1 class="page-title">Membres actifs</h1>
-    <p class="page-subtitle">Annuaire des membres validés et accès aux cartes.</p>
+    <p class="page-subtitle">
+      {% if section_locale %}
+      Section <strong>{{ section_locale.nom }}</strong> — annuaire des membres validés.
+      {% else %}
+      Annuaire des membres validés et accès aux cartes.
+      {% endif %}
+    </p>
   </div>
   <div class="page-actions">
     <a href="{% url 'membership:impression' %}" class="btn btn-outline-success btn-sm">Impression en lot</a>

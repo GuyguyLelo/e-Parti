@@ -6,22 +6,25 @@ from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from core.permissions import role_required
+from core.permissions import (
+    role_required,
+    scope_adhesions,
+    scope_membres,
+    user_can_access_adhesion,
+    user_can_access_membre,
+)
 from membership.forms import AdhesionForm, MembreUpdateForm, RejetAdhesionForm
 from membership.models import Adhesion, CarteMembre, Membre
 from membership.services.carte import _carte_basename, generate_membership_card
 from membership.services.fiche_adhesion import fiche_basename, generate_fiche_adhesion_pdf
 
 
-def _membre_accessible(user, membre):
-    """Vérifie le périmètre territorial ; renvoie un message d'erreur ou None."""
-    if user.is_provincial and user.province_id:
-        if membre.adhesion.section_locale.province != user.province:
-            return "Accès non autorisé pour votre périmètre."
-    elif user.is_local and user.section_locale_id:
-        if membre.adhesion.section_locale_id != user.section_locale_id:
-            return "Accès non autorisé pour votre périmètre."
-    return None
+def _deny_scope(request, redirect_name="membership:membre_list"):
+    messages.error(
+        request,
+        "Accès limité aux membres de votre section / province.",
+    )
+    return redirect(redirect_name)
 
 
 def adhesion_create(request):
@@ -47,16 +50,14 @@ def adhesion_success(request, pk):
 
 
 @login_required
-@role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
+@role_required("ADMIN_NATIONAL")
 def adhesion_list(request):
-    qs = Adhesion.objects.select_related(
-        "section_locale__commune__ville__province", "province_origine"
+    qs = scope_adhesions(
+        Adhesion.objects.select_related(
+            "section_locale__commune__ville__province", "province_origine"
+        ),
+        request.user,
     )
-    user = request.user
-    if user.is_provincial and user.province_id:
-        qs = qs.filter(section_locale__commune__ville__province=user.province)
-    elif user.is_local and user.section_locale_id:
-        qs = qs.filter(section_locale=user.section_locale)
 
     statut = request.GET.get("statut")
     q = request.GET.get("q", "").strip()
@@ -73,12 +74,17 @@ def adhesion_list(request):
     return render(
         request,
         "membership/adhesion_list.html",
-        {"adhesions": qs[:200], "statut": statut, "q": q},
+        {
+            "adhesions": qs[:200],
+            "statut": statut,
+            "q": q,
+            "section_locale": getattr(request.user, "section_locale", None),
+        },
     )
 
 
 @login_required
-@role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
+@role_required("ADMIN_NATIONAL")
 def adhesion_detail(request, pk):
     adhesion = get_object_or_404(
         Adhesion.objects.select_related(
@@ -86,6 +92,8 @@ def adhesion_detail(request, pk):
         ),
         pk=pk,
     )
+    if not user_can_access_adhesion(request.user, adhesion):
+        return _deny_scope(request, "membership:adhesion_list")
     rejet_form = RejetAdhesionForm()
     return render(
         request,
@@ -95,10 +103,15 @@ def adhesion_detail(request, pk):
 
 
 @login_required
-@role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
+@role_required("ADMIN_NATIONAL")
 @require_POST
 def adhesion_valider(request, pk):
-    adhesion = get_object_or_404(Adhesion, pk=pk)
+    adhesion = get_object_or_404(
+        Adhesion.objects.select_related("section_locale__commune__ville__province"),
+        pk=pk,
+    )
+    if not user_can_access_adhesion(request.user, adhesion):
+        return _deny_scope(request, "membership:adhesion_list")
     try:
         membre = adhesion.valider(user=request.user)
         messages.success(
@@ -111,10 +124,15 @@ def adhesion_valider(request, pk):
 
 
 @login_required
-@role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
+@role_required("ADMIN_NATIONAL")
 @require_POST
 def adhesion_rejeter(request, pk):
-    adhesion = get_object_or_404(Adhesion, pk=pk)
+    adhesion = get_object_or_404(
+        Adhesion.objects.select_related("section_locale__commune__ville__province"),
+        pk=pk,
+    )
+    if not user_can_access_adhesion(request.user, adhesion):
+        return _deny_scope(request, "membership:adhesion_list")
     form = RejetAdhesionForm(request.POST)
     if form.is_valid():
         adhesion.rejeter(motif=form.cleaned_data["motif"], user=request.user)
@@ -145,14 +163,13 @@ def adhesion_fiche_pdf(request, pk):
 @login_required
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def membre_list(request):
-    qs = Membre.objects.select_related(
-        "adhesion__section_locale__commune__ville__province"
-    ).filter(actif=True)
-    user = request.user
-    if user.is_provincial and user.province_id:
-        qs = qs.filter(adhesion__section_locale__commune__ville__province=user.province)
-    elif user.is_local and user.section_locale_id:
-        qs = qs.filter(adhesion__section_locale=user.section_locale)
+    """Liste des membres : un local ne voit que sa section."""
+    qs = scope_membres(
+        Membre.objects.select_related(
+            "adhesion__section_locale__commune__ville__province"
+        ).filter(actif=True),
+        request.user,
+    )
 
     q = request.GET.get("q", "").strip()
     if q:
@@ -162,7 +179,15 @@ def membre_list(request):
             | Q(adhesion__prenom__icontains=q)
             | Q(adhesion__numero_membre__icontains=q)
         )
-    return render(request, "membership/membre_list.html", {"membres": qs[:200], "q": q})
+    return render(
+        request,
+        "membership/membre_list.html",
+        {
+            "membres": qs[:200],
+            "q": q,
+            "section_locale": getattr(request.user, "section_locale", None),
+        },
+    )
 
 
 @login_required
@@ -177,10 +202,8 @@ def membre_detail(request, pk):
         ),
         pk=pk,
     )
-    denied = _membre_accessible(request.user, membre)
-    if denied:
-        messages.error(request, denied)
-        return redirect("membership:membre_list")
+    if not user_can_access_membre(request.user, membre):
+        return _deny_scope(request)
 
     adhesion = membre.adhesion
     carte = getattr(membre, "carte", None)
@@ -207,10 +230,8 @@ def membre_edit(request, pk):
         ),
         pk=pk,
     )
-    denied = _membre_accessible(request.user, membre)
-    if denied:
-        messages.error(request, denied)
-        return redirect("membership:membre_list")
+    if not user_can_access_membre(request.user, membre):
+        return _deny_scope(request)
 
     adhesion = membre.adhesion
     before = {
@@ -261,7 +282,12 @@ def membre_edit(request, pk):
 @login_required
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def carte_detail(request, membre_id):
-    membre = get_object_or_404(Membre, pk=membre_id)
+    membre = get_object_or_404(
+        Membre.objects.select_related("adhesion__section_locale"),
+        pk=membre_id,
+    )
+    if not user_can_access_membre(request.user, membre):
+        return _deny_scope(request)
     carte = getattr(membre, "carte", None)
     return render(
         request,
@@ -274,7 +300,12 @@ def carte_detail(request, membre_id):
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 @require_POST
 def carte_generer(request, membre_id):
-    membre = get_object_or_404(Membre, pk=membre_id)
+    membre = get_object_or_404(
+        Membre.objects.select_related("adhesion__section_locale"),
+        pk=membre_id,
+    )
+    if not user_can_access_membre(request.user, membre):
+        return _deny_scope(request)
     generate_membership_card(membre)
     messages.success(request, "Carte régénérée avec succès.")
     return redirect("membership:carte_detail", membre_id=membre.pk)
@@ -283,7 +314,12 @@ def carte_generer(request, membre_id):
 @login_required
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def carte_telecharger(request, membre_id):
-    membre = get_object_or_404(Membre, pk=membre_id)
+    membre = get_object_or_404(
+        Membre.objects.select_related("adhesion__section_locale"),
+        pk=membre_id,
+    )
+    if not user_can_access_membre(request.user, membre):
+        return _deny_scope(request)
     carte = getattr(membre, "carte", None)
     if not carte or not carte.fichier_pdf:
         raise Http404("Carte PDF introuvable")
@@ -295,13 +331,20 @@ def carte_telecharger(request, membre_id):
 
 
 @login_required
-@role_required("ADMIN_NATIONAL", "PROVINCIAL")
+@role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def impression_batch(request):
-    """Impression en lot des cartes sélectionnées."""
+    """Impression en lot des cartes (limité au périmètre de l'utilisateur)."""
+    membres_qs = scope_membres(Membre.objects.filter(actif=True), request.user)
     ids = request.GET.getlist("ids") or request.POST.getlist("ids")
-    cartes = CarteMembre.objects.filter(
-        membre_id__in=ids, fichier_pdf__isnull=False
-    ).exclude(fichier_pdf="").select_related("membre__adhesion")
+    cartes = (
+        CarteMembre.objects.filter(
+            membre_id__in=ids,
+            membre__in=membres_qs,
+            fichier_pdf__isnull=False,
+        )
+        .exclude(fichier_pdf="")
+        .select_related("membre__adhesion")
+    )
 
     if request.method == "POST" and request.POST.get("action") == "download_zip":
         import zipfile
@@ -311,7 +354,6 @@ def impression_batch(request):
         with zipfile.ZipFile(buf, "w") as zf:
             for carte in cartes:
                 name = f"{_carte_basename(carte.membre)}.pdf"
-
                 with carte.fichier_pdf.open("rb") as f:
                     zf.writestr(name, f.read())
         buf.seek(0)
@@ -322,13 +364,20 @@ def impression_batch(request):
     return render(
         request,
         "membership/impression.html",
-        {"cartes": cartes, "membres": Membre.objects.filter(actif=True)[:300]},
+        {
+            "cartes": cartes,
+            "membres": membres_qs.select_related(
+                "adhesion__section_locale"
+            )[:300],
+        },
     )
 
 
 def verifier_membre(request, numero_membre):
     """Vérification publique via QR code."""
-    adhesion = get_object_or_404(Adhesion, numero_membre=numero_membre, statut=Adhesion.Statut.VALIDE)
+    adhesion = get_object_or_404(
+        Adhesion, numero_membre=numero_membre, statut=Adhesion.Statut.VALIDE
+    )
     membre = getattr(adhesion, "membre", None)
     carte = getattr(membre, "carte", None) if membre else None
     return render(
@@ -338,6 +387,12 @@ def verifier_membre(request, numero_membre):
             "adhesion": adhesion,
             "membre": membre,
             "carte": carte,
-            "valide": bool(membre and membre.actif and carte and carte.actif and not carte.est_expiree),
+            "valide": bool(
+                membre
+                and membre.actif
+                and carte
+                and carte.actif
+                and not carte.est_expiree
+            ),
         },
     )

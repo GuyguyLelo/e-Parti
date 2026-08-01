@@ -1,12 +1,38 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% load finances_extras %}
+{% block title %}Dashboard — {{ scope.label }}{% endblock %}
 {% block content %}
 <header class="page-header">
   <div class="page-header-text">
-    <span class="page-kicker">Pilotage</span>
+    <span class="page-kicker">Pilotage · {{ scope.label }}</span>
     <h1 class="page-title">Tableau de bord</h1>
-    <p class="page-subtitle">Indicateurs nationaux, provincialité et activité récente.</p>
+    <p class="page-subtitle">
+      {% if scope.level == "section" %}
+        Indicateurs de la section{% if scope.section %} {{ scope.section.nom }}{% endif %}.
+      {% elif scope.level == "province" %}
+        Indicateurs provinciaux{% if scope.province %} — {{ scope.province.nom }}{% endif %}.
+      {% else %}
+        Indicateurs nationaux et activité récente.
+      {% endif %}
+    </p>
   </div>
+  {% if scope.can_filter_section %}
+  <div class="page-actions">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <label class="form-label mb-0 small text-muted" for="section">Section</label>
+      <select class="form-select form-select-sm" id="section" name="section" onchange="this.form.submit()" style="min-width: 12rem;">
+        <option value="">
+          {% if scope.level == "province" or not scope.section %}Tout le périmètre{% else %}Tout le périmètre{% endif %}
+        </option>
+        {% for s in scope.sections %}
+        <option value="{{ s.pk }}" {% if scope.section and scope.section.pk == s.pk %}selected{% endif %}>
+          {{ s.nom }}{% if user.is_admin_national %} — {{ s.province.nom }}{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+  {% endif %}
 </header>
 
 <div class="row g-3 mb-4">
@@ -58,16 +84,25 @@
 <div class="row g-4 mb-2">
   <div class="col-lg-7">
     <div class="form-section chart-panel h-100">
-      <h5>Membres par province</h5>
+      <h5>{{ geo_title }}</h5>
       <div class="chart-wrap">
-        <canvas id="chartProvinces" aria-label="Graphique membres par province"></canvas>
+        <canvas id="chartGeo" aria-label="{{ geo_title }}"></canvas>
       </div>
     </div>
   </div>
   <div class="col-lg-5">
     <div class="form-section chart-panel h-100">
       <h5>Finances par type</h5>
-      <p class="text-muted small mb-2">Total : <strong>{{ total_finances }} CDF</strong></p>
+      <p class="text-muted small mb-2">
+        Total :
+        <strong>
+          {% if total_finances %}
+            {{ total_finances|join:" · " }}
+          {% else %}
+            0,00 CDF
+          {% endif %}
+        </strong>
+      </p>
       <div class="chart-wrap chart-wrap-sm">
         <canvas id="chartFinances" aria-label="Graphique finances"></canvas>
       </div>
@@ -75,6 +110,7 @@
   </div>
 </div>
 
+{% if user.is_admin_national and not scope.section %}
 <div class="panel mt-3">
   <div class="panel-header"><h5>Dernières adhésions</h5></div>
   <div class="table-responsive">
@@ -98,8 +134,35 @@
     </table>
   </div>
 </div>
+{% else %}
+<div class="panel mt-3">
+  <div class="panel-header">
+    <h5>Derniers membres{% if scope.section %} — {{ scope.section.nom }}{% endif %}</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle mb-0 table-responsive-cards">
+      <thead>
+        <tr><th>Nom</th><th>N° membre</th><th>Section</th><th>Activation</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for m in derniers_membres %}
+        <tr>
+          <td data-label="Nom" class="cell-strong">{{ m.nom_complet }}</td>
+          <td data-label="N° membre" class="cell-muted">{{ m.numero_membre }}</td>
+          <td data-label="Section" class="cell-muted">{{ m.adhesion.section_locale.nom }}</td>
+          <td data-label="Activation" class="cell-muted">{{ m.date_activation|date:"d/m/Y" }}</td>
+          <td data-label="Action" class="text-end"><a class="btn btn-outline-success btn-sm" href="{% url 'membership:membre_detail' m.pk %}">Voir</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" data-label=""><div class="empty-state py-4"><strong>Aucun membre</strong></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 
-{{ chart_provinces|json_script:"data-provinces" }}
+{{ chart_geo|json_script:"data-geo" }}
 {{ chart_croissance|json_script:"data-croissance" }}
 {{ chart_statuts|json_script:"data-statuts" }}
 {{ chart_finances|json_script:"data-finances" }}
@@ -126,7 +189,7 @@
     catch (e) { return { labels: [], data: [] }; }
   }
 
-  const provinces = readJson("data-provinces");
+  const geo = readJson("data-geo");
   const croissance = readJson("data-croissance");
   const statuts = readJson("data-statuts");
   const finances = readJson("data-finances");
@@ -196,13 +259,13 @@
     plugins: [emptyPlugin],
   });
 
-  new Chart(document.getElementById("chartProvinces"), {
+  new Chart(document.getElementById("chartGeo"), {
     type: "bar",
     data: {
-      labels: provinces.labels.length ? provinces.labels : ["—"],
+      labels: geo.labels.length ? geo.labels : ["—"],
       datasets: [{
         label: "Membres",
-        data: provinces.data.length ? provinces.data : [0],
+        data: geo.data.length ? geo.data : [0],
         backgroundColor: COLORS.palette,
         borderRadius: 5,
         maxBarThickness: 22,
@@ -242,7 +305,7 @@
         tooltip: {
           callbacks: {
             label: (c) => finances.data.length
-              ? ` ${c.label}: ${Number(c.raw).toLocaleString("fr-FR")} CDF`
+              ? ` ${c.label}: ${Number(c.raw).toLocaleString("fr-FR")}`
               : " Aucune donnée",
           },
         },

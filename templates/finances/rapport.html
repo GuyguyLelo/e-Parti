@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load finances_extras %}
 {% block title %}Rapport financier{% endblock %}
 {% block content %}
 <nav class="breadcrumb-ep">
@@ -11,7 +12,14 @@
   <div class="page-header-text">
     <span class="page-kicker">Finances</span>
     <h1 class="page-title">Rapports financiers</h1>
-    <p class="page-subtitle">Total global : <strong>{{ total_global }} CDF</strong></p>
+    <p class="page-subtitle">
+      Total global :
+      {% if totaux %}
+        <strong>{{ totaux|join:" · " }}</strong>
+      {% else %}
+        <strong>0,00 CDF</strong>
+      {% endif %}
+    </p>
   </div>
   <div class="page-actions">
     <a href="{% url 'finances:export_excel' %}" class="btn btn-outline-success btn-sm">Export Excel</a>
@@ -22,18 +30,19 @@
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0 table-responsive-cards">
       <thead>
-        <tr><th>Type</th><th>Nombre</th><th>Total</th></tr>
+        <tr><th>Type</th><th>Devise</th><th>Nombre</th><th>Total</th></tr>
       </thead>
       <tbody>
         {% for row in par_type %}
         <tr>
           <td data-label="Type" class="cell-strong">{{ row.type }}</td>
+          <td data-label="Devise">{{ row.devise }}</td>
           <td data-label="Nombre">{{ row.n }}</td>
-          <td data-label="Total" class="cell-strong">{{ row.total }} CDF</td>
+          <td data-label="Total" class="cell-strong">{{ row.total|montant:row.devise }}</td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="3" data-label="">
+          <td colspan="4" data-label="">
             <div class="empty-state"><strong>Aucune donnée</strong></div>
           </td>
         </tr>

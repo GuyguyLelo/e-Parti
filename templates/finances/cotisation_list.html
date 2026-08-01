@@ -1,11 +1,19 @@
 {% extends "base.html" %}
+{% load finances_extras %}
 {% block title %}Cotisations{% endblock %}
 {% block content %}
 <header class="page-header">
   <div class="page-header-text">
     <span class="page-kicker">Finances</span>
     <h1 class="page-title">Cotisations</h1>
-    <p class="page-subtitle">Total affiché : <strong>{{ total }} CDF</strong></p>
+    <p class="page-subtitle">
+      Total affiché :
+      {% if totaux %}
+        <strong>{{ totaux|join:" · " }}</strong>
+      {% else %}
+        <strong>0,00 CDF</strong>
+      {% endif %}
+    </p>
   </div>
   <div class="page-actions">
     <a href="{% url 'finances:cotisation_create' %}" class="btn btn-success btn-sm">Ajouter</a>
@@ -37,7 +45,7 @@
             </span>
           </td>
           <td data-label="Type"><span class="badge bg-secondary">{{ c.get_type_display }}</span></td>
-          <td data-label="Montant" class="cell-strong">{{ c.montant }} {{ c.devise }}</td>
+          <td data-label="Montant" class="cell-strong">{{ c.montant|montant:c.devise }}</td>
           <td data-label="Mode" class="cell-muted">{{ c.mode_paiement|default:"—" }}</td>
         </tr>
         {% empty %}
