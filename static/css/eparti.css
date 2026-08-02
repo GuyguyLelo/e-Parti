@@ -1242,22 +1242,104 @@ img, svg, video, canvas {
   height: auto;
 }
 
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 /* Touch-friendly targets */
 @media (pointer: coarse) {
   .btn,
   .nav-link,
   .form-control,
-  .form-select {
+  .form-select,
+  .btn-nav-cta,
+  .btn-nav-login {
     min-height: 44px;
   }
-  .btn-sm { min-height: 40px; }
+  .btn-sm { min-height: 40px; padding-top: 0.4rem; padding-bottom: 0.4rem; }
   .form-check-input {
     width: 1.25em;
     height: 1.25em;
   }
+  .page-actions .btn,
+  .form-actions .btn,
+  .action-stack .btn {
+    min-height: 44px;
+  }
 }
 
-/* —— Tablette (≤ 991px) —— */
+/* —— Tablette (768px – 991px) —— */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  main.container {
+    max-width: 100%;
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+
+  .page-header {
+    gap: 1rem;
+    align-items: center;
+  }
+  .page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+  .page-actions .btn {
+    flex: 0 1 auto;
+  }
+
+  .detail-layout {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 1rem;
+  }
+  .detail-layout > aside {
+    order: 0;
+  }
+
+  .detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detail-compact .detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-panel .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-panel table {
+    min-width: 640px;
+  }
+
+  .chart-wrap { height: 220px; }
+  .chart-wrap-sm { height: 200px; }
+
+  .hero {
+    padding: 2rem 1.75rem;
+  }
+  .hero-actions .btn {
+    min-width: 11rem;
+  }
+
+  .stat-card .stat-value.fs-3 {
+    font-size: 1.75rem !important;
+  }
+
+  .form-section.col-lg-8 {
+    max-width: 100%;
+    flex: 0 0 100%;
+  }
+
+  .filter-bar .row {
+    row-gap: 0.65rem;
+  }
+}
+
+/* —— ≤ tablette (tous écrans < desktop) —— */
 @media (max-width: 991.98px) {
   main.container {
     padding-left: max(1rem, env(safe-area-inset-left));
@@ -1280,18 +1362,17 @@ img, svg, video, canvas {
     text-align: center;
     justify-content: center;
   }
+  .page-actions form {
+    width: 100%;
+  }
+  .page-actions form .form-select {
+    width: 100%;
+    min-width: 0;
+  }
 
   .sidebar-card {
     position: static;
     margin-top: 0.25rem;
-  }
-
-  .detail-layout {
-    grid-template-columns: 1fr;
-  }
-  /* Photo / carte en premier sur mobile & tablette */
-  .detail-layout > aside {
-    order: -1;
   }
 
   .card-preview {
@@ -1300,11 +1381,14 @@ img, svg, video, canvas {
     margin-right: auto;
   }
 
-  .chart-wrap { height: 200px; }
-  .chart-wrap-sm { height: 180px; }
+  .nav-shell {
+    width: 100%;
+  }
 
-  .form-section.col-lg-8 {
-    max-width: 100%;
+  /* Menu mobile : pleine largeur, liens confortables */
+  #navMain.show .nav-shell,
+  #navMain.collapsing .nav-shell {
+    margin-top: 0.75rem;
   }
 }
 
@@ -1317,7 +1401,7 @@ img, svg, video, canvas {
 
   main.container {
     padding-top: 1rem !important;
-    padding-bottom: 1.5rem !important;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
   }
 
   .page-header {
@@ -1335,6 +1419,7 @@ img, svg, video, canvas {
   }
   .page-actions .btn {
     width: 100%;
+    flex: 1 1 100%;
   }
 
   .breadcrumb-ep {
@@ -1342,6 +1427,7 @@ img, svg, video, canvas {
     overflow-x: auto;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.15rem;
   }
 
   .panel,
@@ -1364,6 +1450,14 @@ img, svg, video, canvas {
   }
   .filter-bar .row > [class*="col-"] {
     margin-bottom: 0.35rem;
+  }
+
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+  /* Photo / carte en premier sur mobile */
+  .detail-layout > aside {
+    order: -1;
   }
 
   /* Tables → cartes empilées */
@@ -1417,6 +1511,7 @@ img, svg, video, canvas {
   .table-responsive-cards td:last-child {
     border-bottom: none !important;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 0.45rem;
   }
   .table-responsive-cards td::before {
@@ -1432,6 +1527,7 @@ img, svg, video, canvas {
   .table-responsive-cards td .person-cell {
     justify-content: flex-end;
     text-align: left;
+    min-width: 0;
   }
   .table-responsive-cards td[data-label=""] {
     display: block;
@@ -1446,7 +1542,11 @@ img, svg, video, canvas {
   }
   .table-responsive-cards td[data-label="Action"],
   .table-responsive-cards td[data-label="Actions"] {
-    justify-content: flex-end;
+    justify-content: stretch;
+  }
+  .table-responsive-cards td[data-label="Action"] .btn,
+  .table-responsive-cards td[data-label="Actions"] .btn {
+    flex: 1 1 auto;
   }
 
   .detail-grid {
@@ -1456,10 +1556,18 @@ img, svg, video, canvas {
 
   .sidebar-card .photo-frame img,
   .sidebar-card .photo-frame {
-    max-width: 130px;
-    max-height: 165px;
+    max-width: min(160px, 42vw);
+    max-height: 200px;
     aspect-ratio: 3 / 4;
     object-fit: cover;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .sidebar-card {
+    text-align: center;
+  }
+  .action-stack {
+    text-align: left;
   }
 
   .hero {
@@ -1475,6 +1583,9 @@ img, svg, video, canvas {
     width: 72px;
     height: 72px;
   }
+  .hero-title {
+    font-size: 1.65rem;
+  }
   .hero-actions {
     flex-direction: column;
     width: 100%;
@@ -1489,6 +1600,9 @@ img, svg, video, canvas {
 
   .stat-card {
     margin-bottom: 0;
+  }
+  .stat-value.fs-2 {
+    font-size: 1.65rem !important;
   }
   .stat-value.fs-3 {
     font-size: 1.55rem !important;
@@ -1516,12 +1630,12 @@ img, svg, video, canvas {
   }
 
   .eparti-footer {
-    padding: 0.5rem 0 max(0.5rem, env(safe-area-inset-bottom));
+    padding: 0.5rem 0 max(0.75rem, env(safe-area-inset-bottom));
     font-size: 0.8rem;
   }
 
   .eparti-nav.sticky-top {
-    padding-top: env(safe-area-inset-top);
+    padding-top: max(0.5rem, env(safe-area-inset-top));
   }
 
   .page-actions .btn + .btn {
@@ -1534,8 +1648,16 @@ img, svg, video, canvas {
 
   /* Éviter le zoom iOS sur focus input */
   .form-control,
-  .form-select {
-    font-size: 16px;
+  .form-select,
+  textarea.form-control {
+    font-size: 16px !important;
+  }
+
+  /* Formulaire d'adhésion : une colonne claire */
+  .form-compact .row > [class*="col-md-"],
+  .form-section .row > [class*="col-md-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
 }
 
@@ -1546,6 +1668,7 @@ img, svg, video, canvas {
   .page-title { font-size: 1.2rem; }
   .person-avatar { width: 1.85rem; height: 1.85rem; font-size: 0.7rem; }
   .table-responsive-cards td::before { flex-basis: 34%; }
+  .btn-nav-cta { padding-left: 0.85rem !important; padding-right: 0.85rem !important; }
 }
 
 /* —— Paysage mobile —— */
@@ -1554,6 +1677,7 @@ img, svg, video, canvas {
   .hero-logo { width: 56px; height: 56px; }
   .chart-wrap,
   .chart-wrap-sm { height: 140px; }
+  .eparti-nav .navbar-brand .brand-tag { display: none; }
 }
 
 /* Impression */

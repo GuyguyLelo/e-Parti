@@ -11,6 +11,7 @@ python -m venv venv
 source venv/bin/activate
 
 pip install -r requirements.txt
+# Copier .env.example → .env (DATABASE_URL PostgreSQL)
 python manage.py migrate
 python manage.py seed_rdc
 python manage.py runserver
@@ -19,6 +20,7 @@ python manage.py runserver
 - Accueil : http://127.0.0.1:8000/
 - Admin : http://127.0.0.1:8000/admin/ (`admin` / `admin123`)
 - API JWT : `POST /api/auth/token/`
+- Base : PostgreSQL (`e-Parti`, user `postgres`)
 
 ## Apps
 
@@ -36,7 +38,7 @@ python manage.py runserver
 
 1. Copier `.env.example` → `.env`
 2. Définir `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`
-3. `DATABASE_URL=postgres://user:pass@host:5432/eparti`
+3. `DATABASE_URL=postgres://postgres:123456@127.0.0.1:5432/e-Parti`
 4. `gunicorn eparti.wsgi:application`
 5. Celery (optionnel) : `celery -A eparti worker -l info`
 

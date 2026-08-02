@@ -18,12 +18,10 @@
   </div>
   {% if scope.can_filter_section %}
   <div class="page-actions">
-    <form method="get" class="d-flex gap-2 align-items-center">
-      <label class="form-label mb-0 small text-muted" for="section">Section</label>
-      <select class="form-select form-select-sm" id="section" name="section" onchange="this.form.submit()" style="min-width: 12rem;">
-        <option value="">
-          {% if scope.level == "province" or not scope.section %}Tout le périmètre{% else %}Tout le périmètre{% endif %}
-        </option>
+    <form method="get" class="w-100 w-md-auto">
+      <label class="form-label mb-1 small text-muted" for="section">Section</label>
+      <select class="form-select form-select-sm" id="section" name="section" onchange="this.form.submit()" style="min-width: min(100%, 16rem);">
+        <option value="">Tout le périmètre</option>
         {% for s in scope.sections %}
         <option value="{{ s.pk }}" {% if scope.section and scope.section.pk == s.pk %}selected{% endif %}>
           {{ s.nom }}{% if user.is_admin_national %} — {{ s.province.nom }}{% endif %}

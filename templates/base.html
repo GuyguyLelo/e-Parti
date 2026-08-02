@@ -130,6 +130,21 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  (function () {
+    // Ferme le menu mobile après un clic sur un lien
+    const nav = document.getElementById("navMain");
+    if (!nav) return;
+    nav.querySelectorAll("a.nav-link, a.btn-nav-cta, a.btn-nav-login, a.nav-logout").forEach((link) => {
+      link.addEventListener("click", () => {
+        if (window.innerWidth < 992 && nav.classList.contains("show")) {
+          const toggler = document.querySelector(".nav-toggler-ep");
+          if (toggler) toggler.click();
+        }
+      });
+    });
+  })();
+  </script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

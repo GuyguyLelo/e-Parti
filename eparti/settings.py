@@ -1,6 +1,6 @@
 """
 Configuration Django — plateforme e-Parti (RDC).
-SQLite en développement, PostgreSQL en production via DATABASE_URL.
+PostgreSQL uniquement (DATABASE_URL).
 """
 import os
 from datetime import timedelta
@@ -90,37 +90,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "eparti.wsgi.application"
 
-# Base de données : PostgreSQL si DATABASE_URL, sinon SQLite
-DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
-if DATABASE_URL.startswith("postgres"):
-    # Format: postgres://user:pass@host:port/dbname
-    import re
+# Base de données : PostgreSQL uniquement
+import re
 
-    m = re.match(
-        r"postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)",
-        DATABASE_URL,
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    "postgres://postgres:123456@127.0.0.1:5432/e-Parti",
+).strip()
+m = re.match(
+    r"postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)",
+    DATABASE_URL,
+)
+if not m:
+    raise ValueError(
+        "DATABASE_URL PostgreSQL invalide. "
+        "Exemple : postgres://postgres:123456@127.0.0.1:5432/e-Parti"
     )
-    if m:
-        user, password, host, port, name = m.groups()
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": name,
-                "USER": user,
-                "PASSWORD": password,
-                "HOST": host,
-                "PORT": port,
-            }
-        }
-    else:
-        raise ValueError("DATABASE_URL PostgreSQL invalide")
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+user, password, host, port, name = m.groups()
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": name,
+        "USER": user,
+        "PASSWORD": password,
+        "HOST": host,
+        "PORT": port,
     }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
