@@ -200,3 +200,8 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+# Forcer le préfixe pour toutes les URLs
+FORCE_SCRIPT_NAME = '/e-parti'
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
