@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 3,
+            "activePatchIndex": 4,
             "patches": [
                 {
                     "date": 1785655142505,
@@ -20,6 +20,10 @@
                 {
                     "date": 1785661298823,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -133,13 +133,13 @@\n TIME_ZONE = \"Africa/Kinshasa\"\n USE_I18N = True\n USE_TZ = True\n \n-STATIC_URL = \"/static/\"\n+STATIC_URL = \"/e-parti/static/\"\n STATIC_ROOT = BASE_DIR / \"staticfiles\"\n STATICFILES_DIRS = [BASE_DIR / \"static\"]\n \n-MEDIA_URL = \"/media/\"\n+MEDIA_URL = \"/e-parti/media/\"\n MEDIA_ROOT = BASE_DIR / \"media\"\n \n DEFAULT_AUTO_FIELD = \"django.db.models.BigAutoField\"\n AUTH_USER_MODEL = \"accounts.User\"\n"
+                },
+                {
+                    "date": 1785661717025,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -26,10 +26,10 @@\n     for h in os.environ.get(\"ALLOWED_HOSTS\", \"localhost,127.0.0.1\").split(\",\")\n     if h.strip()\n ]\n \n-if not DEBUG:\n-     FORCE_SCRIPT_NAME = '/e-parti/'\n+\"\"\"if not DEBUG:\n+     FORCE_SCRIPT_NAME = '/e-parti/'\"\"\"\n \n USE_X_FORWARDED_HOST = True\n USE_X_FORWARDED_PORT = True\n \n"
                 }
             ],
             "date": 1785655142505,

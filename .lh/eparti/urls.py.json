@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 1,
+            "activePatchIndex": 2,
             "patches": [
                 {
                     "date": 1785656573557,
@@ -12,6 +12,10 @@
                 {
                     "date": 1785661496984,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,19 +8,16 @@\n admin.site.site_title = \"E.C.C.O. e-Parti\"\n admin.site.index_title = \"Ensemble, Changeons le Congo\"\n \n urlpatterns = [\n-    # Rediriger la racine vers login\n-    \n-    # Toutes les URLs avec le préfixe e-parti/\n-    path('e-parti/admin/', admin.site.urls),\n-    path('e-parti/', include('core.urls')),\n-    path('e-parti/accounts/', include('accounts.urls')),\n-    path('e-parti/adhesions/', include('membership.urls')),\n-    path('e-parti/finances/', include('finances.urls')),\n-    path('e-parti/organisation/', include('organisation.urls')),\n-    path('e-parti/api/', include('api.urls')),\n+    path(\"admin/\", admin.site.urls),\n+    path(\"\", include(\"core.urls\")),\n+    path(\"accounts/\", include(\"accounts.urls\")),\n+    path(\"adhesions/\", include(\"membership.urls\")),\n+    path(\"finances/\", include(\"finances.urls\")),\n\\ No newline at end of file\n+    path(\"organisation/\", include(\"organisation.urls\")),\n+    path(\"api/\", include(\"api.urls\")),\n ]\n \n if settings.DEBUG:\n     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)\n-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)\n+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])\n"
+                },
+                {
+                    "date": 1785661701866,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,16 +8,19 @@\n admin.site.site_title = \"E.C.C.O. e-Parti\"\n admin.site.index_title = \"Ensemble, Changeons le Congo\"\n \n urlpatterns = [\n-    path(\"admin/\", admin.site.urls),\n-    path(\"\", include(\"core.urls\")),\n-    path(\"accounts/\", include(\"accounts.urls\")),\n-    path(\"adhesions/\", include(\"membership.urls\")),\n-    path(\"finances/\", include(\"finances.urls\")),\n-    path(\"organisation/\", include(\"organisation.urls\")),\n-    path(\"api/\", include(\"api.urls\")),\n+    # Rediriger la racine vers login\n+    \n+    # Toutes les URLs avec le préfixe e-parti/\n+    path('e-parti/admin/', admin.site.urls),\n+    path('e-parti/', include('core.urls')),\n\\ No newline at end of file\n+    path('e-parti/accounts/', include('accounts.urls')),\n+    path('e-parti/adhesions/', include('membership.urls')),\n+    path('e-parti/finances/', include('finances.urls')),\n+    path('e-parti/organisation/', include('organisation.urls')),\n+    path('e-parti/api/', include('api.urls')),\n ]\n \n if settings.DEBUG:\n     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)\n-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])\n+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)\n\\ No newline at end of file\n"
                 }
             ],
             "date": 1785656573557,
