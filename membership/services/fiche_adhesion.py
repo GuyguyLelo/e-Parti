@@ -376,10 +376,21 @@ def generate_fiche_adhesion_pdf(adhesion) -> bytes:
     y -= 5 * mm
     _hline(c, left, y, right, 0.5)
     y -= 6 * mm
+    _dotted_field(
+        c,
+        left,
+        y,
+        width,
+        "8. Qualité :",
+        adhesion.get_qualite_display() if adhesion.qualite else "",
+    )
+    y -= 5 * mm
+    _hline(c, left, y, right, 0.5)
+    y -= 6 * mm
 
-    # 8. Déjà membre
+    # 9. Déjà membre
     c.setFont(FONT_B, 9)
-    c.drawString(left, y, "8. Avez-vous déjà été membre d'un parti politique ou d'une association ?")
+    c.drawString(left, y, "9. Avez-vous déjà été membre d'un parti politique ou d'une association ?")
     y -= 5.5 * mm
     _checkbox(c, left + 8 * mm, y, "Oui", adhesion.deja_membre)
     _checkbox(c, left + 28 * mm, y, "Non", not adhesion.deja_membre)
@@ -413,9 +424,9 @@ def generate_fiche_adhesion_pdf(adhesion) -> bytes:
     _hline(c, left, y, right, 0.5)
     y -= 6 * mm
 
-    # 9. Engagement
+    # 10. Engagement
     c.setFont(FONT_B, 9)
-    c.drawString(left, y, "9.")
+    c.drawString(left, y, "10.")
     engagement = (
         "Je soussigné(e) certifie exacts et sincères les renseignements portés sur ce formulaire "
         "et m'engage à mettre mon savoir-faire, mon savoir-être, mon expérience et mon temps "
@@ -451,7 +462,7 @@ def generate_fiche_adhesion_pdf(adhesion) -> bytes:
 
     c.setFont(FONT_B, 9)
     _set_fill(c, INK)
-    c.drawString(left, y, "10. Observations :")
+    c.drawString(left, y, "11. Observations :")
     obs = adhesion.motif_rejet if adhesion.statut == "REJETE" else ""
     y -= 5.5 * mm
     for i in range(2):

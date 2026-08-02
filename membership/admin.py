@@ -36,6 +36,7 @@ class AdhesionAdmin(admin.ModelAdmin):
     )
     list_filter = (
         "statut",
+        "qualite",
         "sexe",
         "section_locale__commune__ville__province",
         "date_creation",

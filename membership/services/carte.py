@@ -66,7 +66,6 @@ def _party_cfg():
         "president_name": getattr(
             settings, "PARTY_PRESIDENT_NAME", "Adam BOMBOLE INTOLE"
         ),
-        "qualite": getattr(settings, "PARTY_MEMBER_QUALITY", "MEMBRE EFFECTIF"),
     }
 
 
@@ -286,10 +285,11 @@ def _build_card_recto(membre) -> Image.Image:
     name_block_h = 36 * len(name_lines) + 24
 
     sexe = adhesion.get_sexe_display() if hasattr(adhesion, "get_sexe_display") else adhesion.sexe
+    qualite = (adhesion.get_qualite_display() or "Membre effectif").upper()
     fields = [
         ("Sexe", sexe),
         ("Fédération", _zone_courte(adhesion)),
-        ("Qualité", cfg["qualite"]),
+        ("Qualité", qualite),
         ("Adresse", adhesion.adresse or "—"),
     ]
     label_size, value_size, row_h = 28, 28, 46

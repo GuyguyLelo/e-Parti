@@ -108,9 +108,13 @@
         <label class="form-label">Niveau d'études</label>{{ form.niveau_etudes }}
         {% if form.niveau_etudes.errors %}<div class="field-error">{{ form.niveau_etudes.errors }}</div>{% endif %}
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label class="form-label">Profession</label>{{ form.profession }}
         {% if form.profession.errors %}<div class="field-error">{{ form.profession.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Qualité *</label>{{ form.qualite }}
+        {% if form.qualite.errors %}<div class="field-error">{{ form.qualite.errors }}</div>{% endif %}
       </div>
       <div class="col-md-6 d-flex align-items-end">
         <div class="form-check mb-1">

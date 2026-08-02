@@ -35,6 +35,12 @@ class Adhesion(models.Model):
         UNIVERSITAIRE = "UNIVERSITAIRE", "Universitaire"
         POST_UNIVERSITAIRE = "POST_UNIV", "Post-universitaire"
 
+    class Qualite(models.TextChoices):
+        MEMBRE_EFFECTIF = "MEMBRE_EFFECTIF", "Membre effectif"
+        CADRE = "CADRE", "Cadre"
+        HAUT_CADRE = "HAUT_CADRE", "Haut cadre"
+        MEMBRE_HONNEUR = "MEMBRE_HONNEUR", "Membre d'honneur"
+
     class Statut(models.TextChoices):
         EN_ATTENTE = "EN_ATTENTE", "En attente"
         VALIDE = "VALIDE", "Validée"
@@ -70,6 +76,12 @@ class Adhesion(models.Model):
         max_length=20, choices=NiveauEtudes.choices, blank=True
     )
     profession = models.CharField(max_length=120, blank=True)
+    qualite = models.CharField(
+        "Qualité",
+        max_length=20,
+        choices=Qualite.choices,
+        default=Qualite.MEMBRE_EFFECTIF,
+    )
     deja_membre = models.BooleanField("Déjà membre auparavant ?", default=False)
     details_membre = models.TextField(blank=True)
     motivations = models.TextField()

@@ -241,6 +241,10 @@ def membre_edit(request, pk):
         "post_nom": adhesion.post_nom,
         "prenom": adhesion.prenom,
         "date_naissance": adhesion.date_naissance,
+        "sexe": adhesion.sexe,
+        "adresse": adhesion.adresse,
+        "qualite": adhesion.qualite,
+        "section_locale_id": adhesion.section_locale_id,
         "photo1": adhesion.photo1.name if adhesion.photo1 else "",
     }
 
@@ -258,6 +262,10 @@ def membre_edit(request, pk):
                 or before["post_nom"] != adhesion.post_nom
                 or before["prenom"] != adhesion.prenom
                 or before["date_naissance"] != adhesion.date_naissance
+                or before["sexe"] != adhesion.sexe
+                or before["adresse"] != adhesion.adresse
+                or before["qualite"] != adhesion.qualite
+                or before["section_locale_id"] != adhesion.section_locale_id
                 or before["photo1"] != after_photo
             )
             if changed_for_card and getattr(membre, "carte", None):

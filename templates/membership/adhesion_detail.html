@@ -66,6 +66,10 @@
         <span class="value">{{ adhesion.profession|default:"—" }}</span>
       </div>
       <div class="detail-field">
+        <span class="label">Qualité</span>
+        <span class="value">{{ adhesion.get_qualite_display }}</span>
+      </div>
+      <div class="detail-field">
         <span class="label">Niveau d'études</span>
         <span class="value">{{ adhesion.get_niveau_etudes_display|default:"—" }}</span>
       </div>
