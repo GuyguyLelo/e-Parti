@@ -28,10 +28,7 @@ ALLOWED_HOSTS = [
 ]
 
 if DEBUG:
-     FORCE_SCRIPT_NAME = '/e-parti/'
-     
-USE_X_FORWARDED_HOST = True
-USE_X_FORWARDED_PORT = True
+    
 
 SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
 
