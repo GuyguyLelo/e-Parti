@@ -242,6 +242,7 @@ class CotisationForm(forms.ModelForm):
             "type",
             "reference",
             "mode_paiement",
+            "preuve",
             "notes",
         ]
         widgets = {
@@ -261,6 +262,12 @@ class CotisationForm(forms.ModelForm):
             "type": forms.Select(attrs={"class": "form-select"}),
             "reference": forms.TextInput(attrs={"class": "form-control"}),
             "mode_paiement": forms.Select(attrs={"class": "form-select"}),
+            "preuve": forms.ClearableFileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": "image/*",
+                }
+            ),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 
@@ -279,6 +286,7 @@ class EvenementForm(forms.ModelForm):
             "province",
             "section_locale",
             "participants_attendus",
+            "actif",
         ]
         widgets = {
             "titre": forms.TextInput(attrs={"class": "form-control"}),
@@ -292,4 +300,14 @@ class EvenementForm(forms.ModelForm):
             "province": forms.Select(attrs={"class": "form-select"}),
             "section_locale": forms.Select(attrs={"class": "form-select"}),
             "participants_attendus": forms.NumberInput(attrs={"class": "form-control"}),
+            "actif": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["date"].input_formats = [
+            "%Y-%m-%dT%H:%M",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+        ]
+

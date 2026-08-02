@@ -24,7 +24,58 @@
   </div>
 </section>
 
-<div class="row g-3">
+<section class="home-campagnes" aria-labelledby="campagnes-title">
+  <header class="home-campagnes-header">
+    <div>
+      <span class="page-kicker">Agenda</span>
+      <h2 id="campagnes-title" class="section-title mb-0">Campagnes</h2>
+      <p class="page-subtitle mt-2 mb-0">À venir en premier, puis les mobilisations récentes.</p>
+    </div>
+    {% if user.is_authenticated %}
+    <a href="{% url 'organisation:evenement_list' %}" class="btn btn-outline-success btn-sm">Voir tout</a>
+    {% endif %}
+  </header>
+
+  {% if campagnes %}
+  <div class="home-campagnes-slider" data-campagnes-slider>
+    <button type="button" class="home-campagnes-nav home-campagnes-nav--prev" data-slider-prev aria-label="Campagne précédente">‹</button>
+    <div class="home-campagnes-viewport" data-slider-track tabindex="0" role="region" aria-label="Campagnes à venir">
+      <div class="home-campagnes-track">
+        {% for c in campagnes %}
+        <article class="home-campagne-card{% if c.date < now %} is-past{% endif %}">
+          <div class="home-campagne-date" aria-label="{{ c.date|date:'d/m/Y H:i' }}">
+            <span class="home-campagne-day">{{ c.date|date:"d" }}</span>
+            <span class="home-campagne-month">{{ c.date|date:"M" }}</span>
+            <span class="home-campagne-time">{{ c.date|date:"H:i" }}</span>
+          </div>
+          <div class="home-campagne-body">
+            <span class="home-campagne-type">{% if c.date < now %}Passée{% else %}{{ c.get_type_display }}{% endif %}</span>
+            <h3 class="home-campagne-title">{{ c.titre }}</h3>
+            <p class="home-campagne-meta">
+              {{ c.lieu }}{% if c.province %} · {{ c.province.nom }}{% endif %}
+            </p>
+            {% if c.description %}
+            <p class="home-campagne-desc">{{ c.description|truncatewords:22 }}</p>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    <button type="button" class="home-campagnes-nav home-campagnes-nav--next" data-slider-next aria-label="Campagne suivante">›</button>
+    <div class="home-campagnes-dots" data-slider-dots aria-hidden="true"></div>
+  </div>
+  {% else %}
+  <div class="panel">
+    <div class="empty-state">
+      <strong>Aucune campagne annoncée</strong>
+      Les prochaines mobilisations apparaîtront ici.
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<div class="row g-3 mt-1">
   <div class="col-6 col-md-4">
     <div class="card stat-card accent-blue p-3 h-100">
       <div class="text-muted small fw-semibold text-uppercase">Membres actifs</div>
@@ -44,4 +95,110 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const root = document.querySelector("[data-campagnes-slider]");
+  if (!root) return;
+
+  const track = root.querySelector("[data-slider-track]");
+  const cards = Array.from(root.querySelectorAll(".home-campagne-card"));
+  const prevBtn = root.querySelector("[data-slider-prev]");
+  const nextBtn = root.querySelector("[data-slider-next]");
+  const dotsWrap = root.querySelector("[data-slider-dots]");
+  if (!track || cards.length === 0) return;
+
+  let index = 0;
+  let timer = null;
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function perView() {
+    return window.innerWidth < 768 ? 1 : 2;
+  }
+
+  function maxIndex() {
+    return Math.max(0, cards.length - perView());
+  }
+
+  function pageCount() {
+    return maxIndex() + 1;
+  }
+
+  function rebuildDots() {
+    dotsWrap.innerHTML = "";
+    const count = pageCount();
+    for (let i = 0; i < count; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "home-campagnes-dot" + (i === index ? " is-active" : "");
+      btn.setAttribute("aria-label", "Page " + (i + 1));
+      btn.addEventListener("click", () => goTo(i, true));
+      dotsWrap.appendChild(btn);
+    }
+  }
+
+  function cardStep() {
+    if (cards.length < 2) return cards[0].offsetWidth;
+    return cards[1].offsetLeft - cards[0].offsetLeft;
+  }
+
+  function updateDots() {
+    Array.from(dotsWrap.children).forEach((d, di) => {
+      d.classList.toggle("is-active", di === index);
+    });
+  }
+
+  function goTo(i, userAction) {
+    const max = maxIndex();
+    index = ((i % (max + 1)) + (max + 1)) % (max + 1);
+    track.scrollTo({ left: index * cardStep(), behavior: prefersReduced ? "auto" : "smooth" });
+    updateDots();
+    if (userAction) restartAuto();
+  }
+
+  function syncFromScroll() {
+    const step = cardStep() || 1;
+    const next = Math.min(maxIndex(), Math.max(0, Math.round(track.scrollLeft / step)));
+    if (next !== index) {
+      index = next;
+      updateDots();
+    }
+  }
+
+  function startAuto() {
+    if (prefersReduced || pageCount() < 2) return;
+    stopAuto();
+    timer = window.setInterval(() => goTo(index + 1, false), 4500);
+  }
+
+  function stopAuto() {
+    if (timer) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function restartAuto() {
+    stopAuto();
+    startAuto();
+  }
+
+  prevBtn && prevBtn.addEventListener("click", () => goTo(index - 1, true));
+  nextBtn && nextBtn.addEventListener("click", () => goTo(index + 1, true));
+  track.addEventListener("scroll", () => window.requestAnimationFrame(syncFromScroll), { passive: true });
+  root.addEventListener("mouseenter", stopAuto);
+  root.addEventListener("mouseleave", startAuto);
+  root.addEventListener("focusin", stopAuto);
+  root.addEventListener("focusout", startAuto);
+  window.addEventListener("resize", () => {
+    rebuildDots();
+    goTo(Math.min(index, maxIndex()), false);
+  });
+
+  rebuildDots();
+  startAuto();
+})();
+</script>
 {% endblock %}

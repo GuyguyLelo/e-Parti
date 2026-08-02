@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="params-list">
+  <nav class="breadcrumb-ep">
+    <a href="{% url 'territoires:parametres_hub' %}">Paramètres</a>
+    <span class="sep">/</span>
+    <span>{{ title }}</span>
+  </nav>
+
+  <header class="page-header page-header-compact params-list-header">
+    <div class="page-header-text">
+      <span class="page-kicker">Référentiel</span>
+      <h1 class="page-title">{{ title }}</h1>
+    </div>
+    <div class="page-actions">
+      <a href="{% url 'territoires:parametres_hub' %}" class="btn btn-outline-secondary btn-sm">Retour</a>
+      <a href="{% url create_url %}" class="btn btn-success btn-sm">Ajouter</a>
+    </div>
+  </header>
+
+  <form class="filter-bar params-list-filters" method="get">
+    <div class="params-list-filters-row">
+      <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Rechercher…">
+      <select class="form-select form-select-sm" name="actif">
+        <option value="">Tous</option>
+        <option value="1" {% if actif == "1" %}selected{% endif %}>Actifs</option>
+        <option value="0" {% if actif == "0" %}selected{% endif %}>Inactifs</option>
+      </select>
+      <button class="btn btn-success btn-sm" type="submit">Filtrer</button>
+    </div>
+  </form>
+
+  <div class="table-panel params-list-table">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 table-sm">
+        <thead>
+          <tr>
+            {% for key, label in columns %}
+            <th>{{ label }}</th>
+            {% endfor %}
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr {% if not row.actif %}class="table-secondary"{% endif %}>
+            {% for cell in row.cells %}
+            <td>
+              {% if forloop.last %}
+                <span class="params-status {% if row.actif %}params-status--on{% else %}params-status--off{% endif %}">{{ cell }}</span>
+              {% else %}
+                {{ cell }}
+              {% endif %}
+            </td>
+            {% endfor %}
+            <td class="text-end">
+              <a href="{% url edit_url_name row.pk %}" class="btn-link-ep">Modifier</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{{ columns|length|add:1 }}" class="text-center text-muted py-3">Aucun enregistrement.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% include "includes/pagination.html" with page_obj=page_obj %}
+{% endblock %}

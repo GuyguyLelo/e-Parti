@@ -15,14 +15,15 @@
   </div>
 </header>
 
-<form method="post" class="form-section col-lg-8 px-0">
+<form method="post" enctype="multipart/form-data" class="form-section col-lg-8 px-0">
   <div class="p-4">
     {% csrf_token %}
     <div class="row g-3">
       {% for field in form %}
-      <div class="col-12 {% if field.name == 'montant' or field.name == 'devise' or field.name == 'date_paiement' or field.name == 'type' %}col-md-6{% endif %}">
-        <label class="form-label">{{ field.label }}</label>
+      <div class="col-12 {% if field.name == 'montant' or field.name == 'devise' or field.name == 'date_paiement' or field.name == 'type' or field.name == 'mode_paiement' %}col-md-6{% endif %}">
+        <label class="form-label">{{ field.label }}{% if field.name == 'preuve' %} <span class="text-muted fw-normal">(image)</span>{% endif %}</label>
         {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
         {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
       </div>
       {% endfor %}

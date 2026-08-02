@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Paramètres{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div class="page-header-text">
+    <span class="page-kicker">Administration</span>
+    <h1 class="page-title">Paramètres</h1>
+    <p class="page-subtitle">Gérez les tables référentielles du découpage territorial.</p>
+  </div>
+</header>
+
+<nav class="params-flow" aria-label="Hiérarchie territoriale">
+  <span>Province</span>
+  <span class="params-flow-sep" aria-hidden="true">→</span>
+  <span>Ville</span>
+  <span class="params-flow-sep" aria-hidden="true">→</span>
+  <span>Commune</span>
+  <span class="params-flow-sep" aria-hidden="true">→</span>
+  <span>Section</span>
+</nav>
+
+<div class="params-grid">
+  {% for card in cards %}
+  <article class="params-card params-card--{{ card.accent }}">
+    <div class="params-card-top">
+      <span class="params-card-step">{{ card.step }}</span>
+      <span class="params-card-icon params-card-icon--{{ card.icon }}" aria-hidden="true"></span>
+    </div>
+    <h2 class="params-card-title">{{ card.title }}</h2>
+    <p class="params-card-desc">{{ card.desc }}</p>
+    <div class="params-card-stats">
+      <div class="params-card-stat">
+        <span class="params-card-stat-value">{{ card.count }}</span>
+        <span class="params-card-stat-label">total</span>
+      </div>
+      <div class="params-card-stat">
+        <span class="params-card-stat-value params-card-stat-value--soft">{{ card.actifs }}</span>
+        <span class="params-card-stat-label">actif{{ card.actifs|pluralize }}</span>
+      </div>
+    </div>
+    <div class="params-card-actions">
+      <a href="{% url card.url %}" class="params-card-link">Ouvrir</a>
+      <a href="{% url card.create_url %}" class="params-card-add" title="Ajouter">+</a>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -8,6 +8,7 @@ from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
+from core.pagination import paginate
 from core.permissions import role_required, scope_cotisations, scope_membres
 from finances.formatting import format_montant
 from finances.models import Cotisation
@@ -38,11 +39,13 @@ def cotisation_list(request):
         request.user,
     )
 
+    page = paginate(request, qs)
     return render(
         request,
         "finances/cotisation_list.html",
         {
-            "cotisations": qs[:200],
+            "cotisations": page,
+            "page_obj": page,
             "totaux": _totaux_par_devise(qs),
             "section_locale": getattr(request.user, "section_locale", None),
         },
@@ -53,7 +56,7 @@ def cotisation_list(request):
 @role_required("ADMIN_NATIONAL", "PROVINCIAL", "LOCAL")
 def cotisation_create(request):
     if request.method == "POST":
-        form = CotisationForm(request.POST, user=request.user)
+        form = CotisationForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             cotisation = form.save(commit=False)
             cotisation.enregistre_par = request.user
@@ -73,17 +76,64 @@ def cotisation_create(request):
 def rapport_financier(request):
     qs = scope_cotisations(Cotisation.objects.all(), request.user)
 
-    par_type = (
-        qs.values("type", "devise")
+    today = date.today()
+    mois_param = (request.GET.get("mois") or "").strip()
+    try:
+        annee, mois = map(int, mois_param.split("-"))
+        if not (1 <= mois <= 12 and annee >= 2026):
+            raise ValueError
+    except (TypeError, ValueError):
+        annee, mois = today.year, today.month
+        mois_param = f"{annee:04d}-{mois:02d}"
+
+    qs = qs.filter(date_paiement__year=annee, date_paiement__month=mois)
+
+    type_labels = dict(Cotisation.TypeCotisation.choices)
+    par_type = [
+        {
+            **row,
+            "type_label": type_labels.get(row["type"], row["type"]),
+        }
+        for row in qs.values("type", "devise")
         .annotate(total=Sum("montant"), n=Count("id"))
         .order_by("type", "devise")
-    )
+    ]
+
+    # Options mois : depuis le mois courant, sans les années < 2026
+    mois_options = []
+    y, m = today.year, today.month
+    mois_fr = [
+        "",
+        "Janvier",
+        "Février",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juillet",
+        "Août",
+        "Septembre",
+        "Octobre",
+        "Novembre",
+        "Décembre",
+    ]
+    while y >= 2026:
+        val = f"{y:04d}-{m:02d}"
+        mois_options.append({"value": val, "label": f"{mois_fr[m]} {y}"})
+        m -= 1
+        if m == 0:
+            m = 12
+            y -= 1
+
     return render(
         request,
         "finances/rapport.html",
         {
             "par_type": par_type,
             "totaux": _totaux_par_devise(qs),
+            "mois": mois_param,
+            "mois_label": f"{mois_fr[mois]} {annee}",
+            "mois_options": mois_options,
         },
     )
 
@@ -97,6 +147,15 @@ def export_excel(request):
         Cotisation.objects.select_related("membre__adhesion"),
         request.user,
     )
+    mois_param = (request.GET.get("mois") or "").strip()
+    if mois_param:
+        try:
+            annee, mois = map(int, mois_param.split("-"))
+            if 1 <= mois <= 12:
+                qs = qs.filter(date_paiement__year=annee, date_paiement__month=mois)
+        except (TypeError, ValueError):
+            pass
+
     wb = Workbook()
     ws = wb.active
     ws.title = "Cotisations"
@@ -119,9 +178,14 @@ def export_excel(request):
     buf = BytesIO()
     wb.save(buf)
     buf.seek(0)
+    filename = (
+        f"cotisations_eparti_{mois_param.replace('-', '_')}.xlsx"
+        if mois_param
+        else "cotisations_eparti.xlsx"
+    )
     response = HttpResponse(
         buf.read(),
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
-    response["Content-Disposition"] = 'attachment; filename="cotisations_eparti.xlsx"'
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response

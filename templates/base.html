@@ -82,6 +82,14 @@
               </a>
             </li>
             {% endif %}
+            {% if user.is_admin_national %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'territoires' %}active{% endif %}" href="{% url 'territoires:parametres_hub' %}">
+                <span class="nav-ico">⚙</span>
+                <span>Paramètres</span>
+              </a>
+            </li>
+            {% endif %}
             {% endif %}
           </ul>
         </div>

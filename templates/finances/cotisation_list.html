@@ -35,6 +35,8 @@
           <th>Type</th>
           <th>Montant</th>
           <th>Mode</th>
+          <th>Référence</th>
+          <th>Preuve</th>
         </tr>
       </thead>
       <tbody>
@@ -50,10 +52,18 @@
           <td data-label="Type"><span class="badge bg-secondary">{{ c.get_type_display }}</span></td>
           <td data-label="Montant" class="cell-strong">{{ c.montant|montant:c.devise }}</td>
           <td data-label="Mode" class="cell-muted">{{ c.get_mode_paiement_display|default:"—" }}</td>
+          <td data-label="Référence" class="cell-muted">{{ c.reference|default:"—" }}</td>
+          <td data-label="Preuve">
+            {% if c.preuve %}
+            <a class="btn btn-outline-primary btn-sm" href="{{ c.preuve.url }}" target="_blank" rel="noopener">Voir</a>
+            {% else %}
+            <span class="cell-muted">—</span>
+            {% endif %}
+          </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" data-label="">
+          <td colspan="7" data-label="">
             <div class="empty-state">
               <strong>Aucune cotisation</strong>
               Enregistrez un premier paiement pour commencer.
@@ -65,4 +75,5 @@
     </table>
   </div>
 </div>
+{% include "includes/pagination.html" with page_obj=page_obj %}
 {% endblock %}

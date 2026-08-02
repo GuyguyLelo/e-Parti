@@ -31,7 +31,23 @@ def home(request):
             statut=Adhesion.Statut.EN_ATTENTE
         ).count(),
     }
-    return render(request, "core/home.html", {"stats": stats})
+    now = timezone.now()
+    base = Evenement.objects.filter(actif=True).select_related(
+        "province", "section_locale"
+    )
+    upcoming = list(base.filter(date__gte=now).order_by("date")[:10])
+    remaining = 10 - len(upcoming)
+    past = (
+        list(base.filter(date__lt=now).order_by("-date")[:remaining])
+        if remaining
+        else []
+    )
+    campagnes = upcoming + past
+    return render(
+        request,
+        "core/home.html",
+        {"stats": stats, "campagnes": campagnes, "now": now},
+    )
 
 
 def _sections_disponibles(user):

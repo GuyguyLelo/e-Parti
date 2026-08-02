@@ -6,6 +6,7 @@ from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from core.pagination import paginate
 from core.permissions import (
     role_required,
     scope_adhesions,
@@ -68,11 +69,13 @@ def adhesion_list(request):
             | Q(numero_membre__icontains=q)
             | Q(telephone__icontains=q)
         )
+    page = paginate(request, qs)
     return render(
         request,
         "membership/adhesion_list.html",
         {
-            "adhesions": qs[:200],
+            "adhesions": page,
+            "page_obj": page,
             "q": q,
             "section_locale": getattr(request.user, "section_locale", None),
         },
@@ -176,11 +179,13 @@ def membre_list(request):
             | Q(adhesion__prenom__icontains=q)
             | Q(adhesion__numero_membre__icontains=q)
         )
+    page = paginate(request, qs)
     return render(
         request,
         "membership/membre_list.html",
         {
-            "membres": qs[:200],
+            "membres": page,
+            "page_obj": page,
             "q": q,
             "section_locale": getattr(request.user, "section_locale", None),
         },
@@ -365,7 +370,7 @@ def impression_batch(request):
             "cartes": cartes,
             "membres": membres_qs.select_related(
                 "adhesion__section_locale"
-            )[:300],
+            ).order_by("adhesion__nom", "adhesion__post_nom", "adhesion__prenom")[:300],
         },
     )
 

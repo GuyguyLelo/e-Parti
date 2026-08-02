@@ -1,0 +1,41 @@
+{% load pagination_tags %}
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav class="pagination-ep" aria-label="Pagination">
+  <p class="pagination-ep-meta">
+    {{ page_obj.start_index }}–{{ page_obj.end_index }}
+    sur {{ page_obj.paginator.count }}
+  </p>
+  <ul class="pagination-ep-list">
+    {% if page_obj.has_previous %}
+    <li>
+      <a class="pagination-ep-link" href="{% page_url page_obj.previous_page_number %}" aria-label="Page précédente">‹</a>
+    </li>
+    {% else %}
+    <li><span class="pagination-ep-link is-disabled" aria-hidden="true">‹</span></li>
+    {% endif %}
+
+    {% pagination_window page_obj as pages %}
+    {% for num in pages %}
+      {% if num is None %}
+      <li><span class="pagination-ep-ellipsis">…</span></li>
+      {% elif num == page_obj.number %}
+      <li><span class="pagination-ep-link is-active" aria-current="page">{{ num }}</span></li>
+      {% else %}
+      <li><a class="pagination-ep-link" href="{% page_url num %}">{{ num }}</a></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <li>
+      <a class="pagination-ep-link" href="{% page_url page_obj.next_page_number %}" aria-label="Page suivante">›</a>
+    </li>
+    {% else %}
+    <li><span class="pagination-ep-link is-disabled" aria-hidden="true">›</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% elif page_obj and page_obj.paginator.count %}
+<p class="pagination-ep-meta pagination-ep-meta--solo">
+  {{ page_obj.paginator.count }} résultat{{ page_obj.paginator.count|pluralize }}
+</p>
+{% endif %}

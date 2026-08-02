@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.forms import LoginForm, UserCreateForm, UserUpdateForm
 from accounts.models import User
+from core.pagination import paginate
 from core.permissions import role_required
 
 
@@ -65,11 +66,13 @@ def user_list(request):
         )
     if role:
         qs = qs.filter(role=role)
+    page = paginate(request, qs)
     return render(
         request,
         "accounts/user_list.html",
         {
-            "users": qs[:300],
+            "users": page,
+            "page_obj": page,
             "q": q,
             "role": role,
             "roles": User.Role.choices,

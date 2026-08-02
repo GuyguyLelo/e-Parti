@@ -48,6 +48,13 @@ class Cotisation(models.Model):
         blank=True,
         default="",
     )
+    preuve = models.ImageField(
+        "Preuve de paiement",
+        upload_to="cotisations/preuves/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="Capture d'écran, reçu ou photo du paiement",
+    )
     notes = models.TextField(blank=True)
     enregistre_par = models.ForeignKey(
         "accounts.User",

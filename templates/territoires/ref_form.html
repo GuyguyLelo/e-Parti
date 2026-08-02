@@ -2,19 +2,21 @@
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <nav class="breadcrumb-ep">
-  <a href="{% url 'organisation:evenement_list' %}">Campagnes</a>
+  <a href="{% url 'territoires:parametres_hub' %}">Paramètres</a>
+  <span class="sep">/</span>
+  <a href="{% url list_url %}">Liste</a>
   <span class="sep">/</span>
   <span>{% if is_edit %}Modifier{% else %}Nouveau{% endif %}</span>
 </nav>
 
 <header class="page-header page-header-compact">
   <div class="page-header-text">
-    <span class="page-kicker">Organisation</span>
+    <span class="page-kicker">Référentiel</span>
     <h1 class="page-title">{{ title }}</h1>
-    <p class="page-subtitle">Meeting, mobilisation, formation ou assemblée.</p>
+    <p class="page-subtitle">Renseignez les champs obligatoires puis enregistrez.</p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'organisation:evenement_list' %}" class="btn btn-outline-secondary btn-sm">Retour</a>
+    <a href="{% url list_url %}" class="btn btn-outline-secondary btn-sm">Retour à la liste</a>
   </div>
 </header>
 
@@ -28,7 +30,7 @@
     <h5><span class="step">{% if is_edit %}✎{% else %}+{% endif %}</span> Informations</h5>
     <div class="row g-2">
       {% for field in form %}
-      <div class="col-12 {% if field.name == 'description' or field.name == 'actif' %}col-md-12{% elif field.name == 'type' or field.name == 'date' or field.name == 'participants_attendus' or field.name == 'province' or field.name == 'section_locale' %}col-md-6{% endif %}">
+      <div class="col-12 {% if field.name == 'adresse' %}col-md-12{% elif field.name == 'actif' %}col-md-12{% else %}col-md-6{% endif %}">
         {% if field.field.widget.input_type == "checkbox" %}
         <div class="form-check mt-2">
           {{ field }}
@@ -39,14 +41,15 @@
         {{ field }}
         {% endif %}
         {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
       </div>
       {% endfor %}
     </div>
   </div>
 
   <div class="d-flex flex-wrap gap-2 mt-3">
-    <button class="btn btn-success" type="submit">{% if is_edit %}Enregistrer{% else %}Créer{% endif %}</button>
-    <a href="{% url 'organisation:evenement_list' %}" class="btn btn-outline-secondary">Annuler</a>
+    <button type="submit" class="btn btn-success">{% if is_edit %}Enregistrer{% else %}Créer{% endif %}</button>
+    <a href="{% url list_url %}" class="btn btn-outline-secondary">Annuler</a>
   </div>
 </form>
 {% endblock %}

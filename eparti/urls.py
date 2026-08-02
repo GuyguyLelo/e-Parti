@@ -15,6 +15,7 @@ urlpatterns = [
     path("adhesions/", include("membership.urls")),
     path("finances/", include("finances.urls")),
     path("organisation/", include("organisation.urls")),
+    path("parametres/", include("territoires.urls")),
     path("api/", include("api.urls")),
 ]
 

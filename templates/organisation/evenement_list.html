@@ -8,19 +8,25 @@
     <p class="page-subtitle">Événements à venir et actions de terrain.</p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'organisation:evenement_create' %}" class="btn btn-success btn-sm">Nouvel événement</a>
+    <a href="{% url 'organisation:evenement_create' %}" class="btn btn-success btn-sm">Nouvelle campagne</a>
   </div>
 </header>
 
 <div class="list-stack">
   {% for e in evenements %}
-  <article class="list-item-card">
+  <article class="list-item-card {% if not e.actif %}opacity-75{% endif %}">
     <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
       <div>
         <h2 class="h6 mb-1" style="font-family:var(--ep-display);color:var(--ep-blue-deeper);">{{ e.titre }}</h2>
-        <div class="cell-muted">{{ e.date|date:"d/m/Y H:i" }} — {{ e.lieu }}</div>
+        <div class="cell-muted">{{ e.date|date:"d/m/Y H:i" }} — {{ e.lieu }}{% if e.province %} · {{ e.province.nom }}{% endif %}</div>
       </div>
-      <span class="badge bg-secondary">{{ e.get_type_display }}</span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge bg-secondary">{{ e.get_type_display }}</span>
+        {% if not e.actif %}
+        <span class="params-status params-status--off">Inactif</span>
+        {% endif %}
+        <a href="{% url 'organisation:evenement_edit' e.pk %}" class="btn btn-outline-primary btn-sm">Modifier</a>
+      </div>
     </div>
     {% if e.description %}
     <p class="mb-0 mt-2">{{ e.description|truncatewords:35 }}</p>
@@ -35,4 +41,5 @@
   </div>
   {% endfor %}
 </div>
+{% include "includes/pagination.html" with page_obj=page_obj %}
 {% endblock %}
