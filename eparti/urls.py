@@ -9,16 +9,13 @@ admin.site.site_title = "E.C.C.O. e-Parti"
 admin.site.index_title = "Ensemble, Changeons le Congo"
 
 urlpatterns = [
-    # Rediriger la racine vers login
-    
-    # Toutes les URLs avec le préfixe e-parti/
-    path('e-parti/admin/', admin.site.urls),
-    path('e-parti/', include('core.urls')),
-    path('e-parti/accounts/', include('accounts.urls')),
-    path('e-parti/adhesions/', include('membership.urls')),
-    path('e-parti/finances/', include('finances.urls')),
-    path('e-parti/organisation/', include('organisation.urls')),
-    path('e-parti/api/', include('api.urls')),
+    path("admin/", admin.site.urls),
+    path("", include("core.urls")),
+    path("accounts/", include("accounts.urls")),
+    path("adhesions/", include("membership.urls")),
+    path("finances/", include("finances.urls")),
+    path("organisation/", include("organisation.urls")),
+    path("api/", include("api.urls")),
 ]
 
 if settings.DEBUG:

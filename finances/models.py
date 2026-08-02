@@ -16,6 +16,16 @@ class Cotisation(models.Model):
         USD = "USD", "Dollar américain (USD)"
         EUR = "EUR", "Euro (EUR)"
 
+    class ModePaiement(models.TextChoices):
+        ESPECES = "especes", "Espèces"
+        MPESA = "mpesa", "M-Pesa"
+        AIRTEL = "airtel", "Airtel Money"
+        ORANGE = "orange", "Orange Money"
+        BANQUE = "banque", "Virement / Banque"
+        CHEQUE = "cheque", "Chèque"
+        CARTE = "carte", "Carte bancaire"
+        AUTRE = "autre", "Autre"
+
     membre = models.ForeignKey(
         "membership.Membre",
         on_delete=models.CASCADE,
@@ -33,9 +43,10 @@ class Cotisation(models.Model):
     )
     reference = models.CharField(max_length=80, blank=True)
     mode_paiement = models.CharField(
-        max_length=40,
+        max_length=20,
+        choices=ModePaiement.choices,
         blank=True,
-        help_text="Espèces, Mobile Money, Banque…",
+        default="",
     )
     notes = models.TextField(blank=True)
     enregistre_par = models.ForeignKey(

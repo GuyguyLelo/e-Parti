@@ -27,12 +27,6 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
-"""if not DEBUG:
-     FORCE_SCRIPT_NAME = '/e-parti/'"""
-
-USE_X_FORWARDED_HOST = True
-USE_X_FORWARDED_PORT = True
-
 SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
 
 INSTALLED_APPS = [
@@ -130,11 +124,11 @@ TIME_ZONE = "Africa/Kinshasa"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "/e-parti/static/"
+STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-MEDIA_URL = "/e-parti/media/"
+MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -260,7 +260,7 @@ class CotisationForm(forms.ModelForm):
             ),
             "type": forms.Select(attrs={"class": "form-select"}),
             "reference": forms.TextInput(attrs={"class": "form-control"}),
-            "mode_paiement": forms.TextInput(attrs={"class": "form-control"}),
+            "mode_paiement": forms.Select(attrs={"class": "form-select"}),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 

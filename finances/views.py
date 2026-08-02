@@ -112,7 +112,7 @@ def export_excel(request):
                 c.get_type_display(),
                 float(c.montant),
                 c.devise,
-                c.mode_paiement,
+                c.get_mode_paiement_display() or c.mode_paiement,
                 c.reference,
             ]
         )
