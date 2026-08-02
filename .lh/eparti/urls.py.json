@@ -1,0 +1,18 @@
+{
+    "sourceFile": "eparti/urls.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1785656573557,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1785656573557,
+            "name": "Commit-0",
+            "content": "\"\"\"URLs racine — e-Parti.\"\"\"\nfrom django.conf import settings\nfrom django.conf.urls.static import static\nfrom django.contrib import admin\nfrom django.urls import include, path\n\nadmin.site.site_header = \"E.C.C.O. — Administration e-Parti\"\nadmin.site.site_title = \"E.C.C.O. e-Parti\"\nadmin.site.index_title = \"Ensemble, Changeons le Congo\"\n\nurlpatterns = [\n    # Rediriger la racine vers login\n    \n    # Toutes les URLs avec le préfixe e-parti/\n    path('e-parti/admin/', admin.site.urls),\n    path('e-parti/', include('core.urls')),\n    path('e-parti/accounts/', include('accounts.urls')),\n    path('e-parti/adhesions/', include('membership.urls')),\n    path('e-parti/finances/', include('finances.urls')),\n    path('e-parti/organisation/', include('organisation.urls')),\n    path('e-parti/api/', include('api.urls')),\n]\n\nif settings.DEBUG:\n    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)\n    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)"
+        }
+    ]
+}
